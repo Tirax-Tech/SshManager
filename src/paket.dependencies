@@ -1,0 +1,8 @@
+source C:\Workspace\nuget
+source https://api.nuget.org/v3/index.json
+
+nuget FSharp.Core
+nuget Avalonia 0.10.13
+nuget Avalonia.Desktop 0.10.13
+nuget Avalonia.Diagnostics 0.10.13
+nuget Avalonia.ReactiveUI 0.10.13

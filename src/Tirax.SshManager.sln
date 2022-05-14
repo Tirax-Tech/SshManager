@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{AC6EE14A-276E-4327-9D3C-9647CDF49E83}"
+	ProjectSection(SolutionItems) = preProject
+		paket.dependencies = paket.dependencies
+	EndProjectSection
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Tirax.SshManager", "Tirax.SshManager\Tirax.SshManager.fsproj", "{197E43D8-F87C-4232-94BA-46DCCF70BBB0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{197E43D8-F87C-4232-94BA-46DCCF70BBB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{197E43D8-F87C-4232-94BA-46DCCF70BBB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{197E43D8-F87C-4232-94BA-46DCCF70BBB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{197E43D8-F87C-4232-94BA-46DCCF70BBB0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,34 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Tirax.SshManager.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Tirax.SshManager.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        x:CompileBindings="True"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="Tirax.SshManager">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <DockPanel>
+        <Panel DockPanel.Dock="Top">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock>Server[:port]</TextBlock>
+                <TextBox Text="{Binding NewServerWithPort}" Watermark="e.g. example.org:9999"></TextBox>
+                <TextBlock>Local Port</TextBlock>
+                <TextBox Text="{Binding NewLocalPort}" Watermark="1 - 65535"></TextBox>
+                <TextBlock>Destination</TextBlock>
+                <TextBox Text="{Binding NewDestination}" Watermark="e.g. 192.168.1.123:9999"></TextBox>
+                <Button>Add</Button>
+            </StackPanel>
+        </Panel>
+        <ListBox Items="{Binding Tunnels}">
+            
+        </ListBox>
+    </DockPanel>
+
+</Window>
