@@ -15,7 +15,10 @@ type App() =
     override this.OnFrameworkInitializationCompleted() =
         match this.ApplicationLifetime with
         | :? IClassicDesktopStyleApplicationLifetime as desktop ->
-             desktop.MainWindow <- MainWindow(DataContext = MainWindowViewModel())
+             let model = MainWindowViewModel()
+             desktop.MainWindow <- MainWindow(DataContext = model)
+             let manager = SshManager.init model
+             desktop.Exit.Add(fun _ -> manager |> SshManager.shutdown |> Async.RunSynchronously)
         | _ -> ()
 
         base.OnFrameworkInitializationCompleted()
