@@ -1,4 +1,4 @@
-﻿module Tirax.SshManager.Models.Domain
+﻿namespace Tirax.SshManager.ViewModels
 
 open System
 open ReactiveUI
@@ -12,10 +12,10 @@ type TunnelConfig() =
     inherit ReactiveObject()
     
     let mutable ssh_host = String.Empty
-    let mutable ssh_port = 0s
-    let mutable local_port = 0s
+    let mutable ssh_port = 0us
+    let mutable local_port = 0us
     let mutable remote_host = String.Empty
-    let mutable remote_port = 0s
+    let mutable remote_port = 0us
     
     member my.SshHost with get() = ssh_host and set v = my.RaiseAndSetIfChanged(&ssh_host, v) |> ignore
     member my.SshPort with get() = ssh_port and set v = my.RaiseAndSetIfChanged(&ssh_port, v) |> ignore

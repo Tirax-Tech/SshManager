@@ -10,10 +10,6 @@
         Icon="/Assets/avalonia-logo.ico"
         Title="Tirax.SshManager">
 
-    <Design.DataContext>
-        <vm:MainWindowViewModel/>
-    </Design.DataContext>
-
     <DockPanel>
         <Panel DockPanel.Dock="Top">
             <StackPanel Orientation="Horizontal">
@@ -23,7 +19,7 @@
                 <TextBox Text="{Binding NewLocalPort}" Watermark="1 - 65535"></TextBox>
                 <TextBlock>Destination</TextBlock>
                 <TextBox Text="{Binding NewDestination}" Watermark="e.g. 192.168.1.123:9999"></TextBox>
-                <Button>Add</Button>
+                <Button Click="AddTunnel">Add</Button>
             </StackPanel>
         </Panel>
         <ListBox Items="{Binding Tunnels}">
