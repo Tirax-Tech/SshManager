@@ -3,6 +3,7 @@
 open System
 open System.Diagnostics
 open System.IO
+open System.Threading.Tasks
 open Akka.Actor
 open Akka.Configuration
 open RZ.FSharp.Extension.Prelude
@@ -13,6 +14,7 @@ let private config = File.ReadAllText "config.hocon" |> ConfigurationFactory.Par
 let Actor = ActorSystem.Create("SshManager", config)
 
 type RegisterTunnel = RegisterTunnel
+type Quit = Quit
 
 module SshManager =
     let [<Literal>] AnyPort = 0us
@@ -40,28 +42,23 @@ module SshManager =
                 let ssh_host, ssh_port = ssh_server.Value
                 let remote_host, remote_port = remote_server.Value
                 
-                TunnelConfig(
-                    SshHost = ssh_host,
-                    SshPort = ssh_port,
-                    LocalPort = model.NewLocalPort,
-                    RemoteHost = remote_host,
-                    RemotePort = remote_port
-                ) |> cont
+                { SshHost = ssh_host
+                  SshPort = ssh_port
+                  LocalPort = model.NewLocalPort
+                  RemoteHost = remote_host
+                  RemotePort = remote_port }
+                |> cont
+                
+    let shutdown() :Task = Task.Run(fun _ -> Actor.Terminate())
 
-type SshManager(model :MainWindowViewModel) =
-    inherit UntypedActor()
+type SshManager(model :MainWindowViewModel) as self =
+    inherit ReceiveActor()
     
-    let registerTunnel() = model |> SshManager.addTunnel Debug.WriteLine model.Tunnels.Add
+    let registerTunnel _ = model |> SshManager.addTunnel Debug.WriteLine model.Tunnels.Add
+    let quit _ = SshManager.shutdown()
     
-    override my.OnReceive m =
-        match m with
-        | :? RegisterTunnel -> registerTunnel()
-        | _ -> my.Unhandled m
-
+    do self.Receive<RegisterTunnel>(registerTunnel)
+    do self.ReceiveAsync<Quit>(quit)
+    
 let init (model :MainWindowViewModel) =
     Actor.ActorOf(Props.Create<SshManager>(model), "ssh-manager")
-    
-let shutdown (actor :IActorRef) = task {
-    actor.Tell(PoisonPill.Instance)
-    do! Actor.Terminate()
-}
