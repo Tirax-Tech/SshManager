@@ -1,5 +1,7 @@
 namespace Tirax.SshManager
 
+open System
+open System.Threading.Tasks
 open Avalonia
 open Avalonia.Controls.ApplicationLifetimes
 open Avalonia.Markup.Xaml
@@ -16,9 +18,10 @@ type App() =
         match this.ApplicationLifetime with
         | :? IClassicDesktopStyleApplicationLifetime as desktop ->
              let model = MainWindowViewModel()
-             desktop.MainWindow <- MainWindow(DataContext = model)
              let manager = SshManager.init model
-             desktop.Exit.Add(fun _ -> manager |> SshManager.shutdown |> Async.RunSynchronously)
+             desktop.MainWindow <- MainWindow(DataContext = model, Manager = manager)
+             let shutdown = Func<_>(fun _ -> manager |> SshManager.shutdown)
+             desktop.Exit.Add(fun _ -> Task.Run<unit>(shutdown) |> ignore)
         | _ -> ()
 
         base.OnFrameworkInitializationCompleted()
