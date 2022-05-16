@@ -32,7 +32,21 @@
                 <Button Click="AddTunnel">Add</Button>
             </StackPanel>
         </Border>
-        <DataGrid Name="TunnelTable" Items="{Binding Tunnels}" AutoGenerateColumns="True"></DataGrid>
+        <DataGrid Name="TunnelTable" Items="{Binding Tunnels}" AutoGenerateColumns="True">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Action">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="vm:TunnelConfig">
+                            <StackPanel Orientation="Horizontal">
+                                <Button IsVisible="{Binding Runnable}">Run</Button>
+                                <Button IsVisible="{Binding Stoppable}">Stop</Button>
+                                <TextBlock IsVisible="{Binding IsWaiting}">Waiting...</TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
     </DockPanel>
 
 </Window>
