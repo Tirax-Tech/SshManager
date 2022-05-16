@@ -42,7 +42,8 @@ module SshManager =
                 let ssh_host, ssh_port = ssh_server.Value
                 let remote_host, remote_port = remote_server.Value
                 
-                { SshHost = ssh_host
+                { Name = model.NewServerWithPort
+                  SshHost = ssh_host
                   SshPort = ssh_port
                   LocalPort = model.NewLocalPort
                   RemoteHost = remote_host

@@ -13,14 +13,16 @@
     <Design.DataContext>
         <vm:MainWindowViewModel>
             <vm:MainWindowViewModel.Tunnels>
-                <vm:TunnelConfig SshHost="sample.org" SshPort="22" LocalPort="80" RemoteHost="example.org" RemotePort="8888" />
+                <vm:TunnelConfig Name="Test" SshHost="sample.org" SshPort="22" LocalPort="80" RemoteHost="example.org" RemotePort="8888" />
             </vm:MainWindowViewModel.Tunnels>
         </vm:MainWindowViewModel>
     </Design.DataContext>
 
     <DockPanel>
-        <Panel DockPanel.Dock="Top">
+        <Border DockPanel.Dock="Top" BorderThickness="1" BorderBrush="Silver">
             <StackPanel Orientation="Horizontal">
+                <TextBlock>Name</TextBlock>
+                <TextBox Text="{Binding NewConnectionName}"></TextBox>
                 <TextBlock>Server[:port]</TextBlock>
                 <TextBox Text="{Binding NewServerWithPort}" Watermark="e.g. example.org:9999"></TextBox>
                 <TextBlock>Local Port</TextBlock>
@@ -29,7 +31,7 @@
                 <TextBox Text="{Binding NewDestination}" Watermark="e.g. 192.168.1.123:9999"></TextBox>
                 <Button Click="AddTunnel">Add</Button>
             </StackPanel>
-        </Panel>
+        </Border>
         <DataGrid Name="TunnelTable" Items="{Binding Tunnels}" AutoGenerateColumns="True"></DataGrid>
     </DockPanel>
 

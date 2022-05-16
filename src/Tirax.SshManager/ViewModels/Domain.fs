@@ -7,6 +7,7 @@ type Server = Host * Port
 
 [<CLIMutable>]
 type TunnelConfig = {
+    Name :string
     SshHost :Host
     SshPort :Port
     LocalPort :Port
