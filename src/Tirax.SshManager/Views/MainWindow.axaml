@@ -8,7 +8,15 @@
         x:DataType="vm:MainWindowViewModel"
         x:CompileBindings="True"
         Icon="/Assets/avalonia-logo.ico"
-        Title="Tirax.SshManager">
+        Title="Tirax SSH Manager">
+    
+    <Design.DataContext>
+        <vm:MainWindowViewModel>
+            <vm:MainWindowViewModel.Tunnels>
+                <vm:TunnelConfig SshHost="sample.org" SshPort="22" LocalPort="80" RemoteHost="example.org" RemotePort="8888" />
+            </vm:MainWindowViewModel.Tunnels>
+        </vm:MainWindowViewModel>
+    </Design.DataContext>
 
     <DockPanel>
         <Panel DockPanel.Dock="Top">
@@ -22,9 +30,7 @@
                 <Button Click="AddTunnel">Add</Button>
             </StackPanel>
         </Panel>
-        <ListBox Items="{Binding Tunnels}">
-            
-        </ListBox>
+        <DataGrid Name="TunnelTable" Items="{Binding Tunnels}" AutoGenerateColumns="True"></DataGrid>
     </DockPanel>
 
 </Window>
