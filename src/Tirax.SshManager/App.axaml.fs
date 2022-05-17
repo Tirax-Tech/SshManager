@@ -2,6 +2,7 @@ namespace Tirax.SshManager
 
 open Akka.Actor
 open Avalonia
+open Avalonia.Controls
 open Avalonia.Controls.ApplicationLifetimes
 open Avalonia.Markup.Xaml
 open Tirax.SshManager.ViewModels
@@ -20,6 +21,7 @@ type App() =
              let manager = SshManager.init model
              let main_window = MainWindow(DataContext = model, Manager = manager)
              main_window.Closing.Add(fun _ -> manager.Tell(SshManager.Quit, ActorRefs.NoSender))
+             desktop.ShutdownMode <- ShutdownMode.OnExplicitShutdown
              desktop.MainWindow <- main_window
         | _ -> ()
 

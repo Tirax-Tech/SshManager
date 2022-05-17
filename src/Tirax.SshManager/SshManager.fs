@@ -1,41 +1,34 @@
 ﻿module Tirax.SshManager.SshManager
 
-open System
+open System.Collections.Generic
 open System.Diagnostics
 open System.IO
 open System.Threading.Tasks
 open Akka.Actor
 open Akka.Configuration
-open RZ.FSharp.Extension.Prelude
-open RZ.FSharp.Extension.Option
+open Avalonia
+open Avalonia.Controls.ApplicationLifetimes
 open Tirax.SshManager.ViewModels
+open Tirax.SshManager.Models
 
 let private config = File.ReadAllText "config.hocon" |> ConfigurationFactory.ParseString
 let Actor = ActorSystem.Create("SshManager", config)
 
 type RegisterTunnel = RegisterTunnel
+type RunTunnel = RunTunnel of TunnelConfig
 type Quit = Quit
 
 module SshManager =
-    let [<Literal>] AnyPort = 0us
-    
-    let parseServer (s :string) =
-        let parts = s.Split(':', StringSplitOptions.TrimEntries)
-        match parts.Length with
-        | 1 -> Some (s, AnyPort)
-        | 2 -> option { let! port = parseUInt16 parts[1] in return (parts[0], port) }
-        | 0 | _ -> None
-        
     let validatePort port = if port < 1us then None else Some port
         
     let addTunnel fail_flow cont (model :MainWindowViewModel) =
-        let ssh_server = parseServer model.NewServerWithPort
+        let ssh_server = ServerInputFormat.parse model.NewServerWithPort
         if ssh_server.IsNone then
             fail_flow $"Invalid SSH server format: %s{model.NewServerWithPort}"
         elif model.NewLocalPort < 1us then
             fail_flow $"Invalid local port: %d{model.NewLocalPort}"
         else
-            let remote_server = parseServer model.NewDestination
+            let remote_server = ServerInputFormat.parse model.NewDestination
             if remote_server.IsNone then
                 fail_flow $"Invalid destination server format: %s{model.NewDestination}"
             else
@@ -50,16 +43,54 @@ module SshManager =
                               RemotePort = remote_port )
                 |> cont
                 
-    let shutdown() :Task = Task.Run(fun _ -> Actor.Terminate())
+    let shutdown() :Task = task {
+        do! Task.Run(fun _ -> Actor.Terminate())
+        let lifetime = Application.Current.ApplicationLifetime :?> IClassicDesktopStyleApplicationLifetime
+        lifetime.Shutdown()
+    }
 
-type SshManager(model :MainWindowViewModel) as self =
+type SshManager(model :MainWindowViewModel) as my =
     inherit ReceiveActor()
     
-    let registerTunnel _ = model |> SshManager.addTunnel Debug.WriteLine model.Tunnels.Add
-    let quit _ = SshManager.shutdown()
+    let runners = Dictionary<string,IActorRef>()
     
-    do self.Receive<RegisterTunnel>(registerTunnel)
-    do self.ReceiveAsync<Quit>(quit)
+    let registerTunnel _ = model |> SshManager.addTunnel Debug.WriteLine model.Tunnels.Add
+    
+    let quit _ =
+        if runners.Count = 0 then
+            SshManager.shutdown()
+        else
+            model.Tunnels |> Seq.iter(fun t -> t.IsWaiting <- true)
+            runners.Values |> Seq.iter (fun r -> r.Tell PoisonPill.Instance)
+            Task.CompletedTask
+        
+    let quited (TunnelRunner.Quited name) =
+        Trace.Assert <| runners.Remove name
+        if runners.Count = 0
+        then SshManager.shutdown()
+        else Task.CompletedTask
+        
+    let runFailed (TunnelRunner.RunFailure (tunnel, ex)) =
+        Trace.Assert <| runners.Remove tunnel.Name
+        Trace.WriteLine $"Failed to run tunnel: %s{tunnel.Name} - %s{ex}"
+        tunnel.IsWaiting <- false
+        
+    let runOk (TunnelRunner.RunOk tunnel) =
+        tunnel.IsWaiting <- false
+        tunnel.IsRunning <- true
+    
+    do my.Receive<RegisterTunnel>(registerTunnel)
+    do my.Receive<RunTunnel>(my.RunTunnel)
+    do my.ReceiveAsync<Quit>(quit)
+    do my.ReceiveAsync<TunnelRunner.Quited>(quited)
+    do my.Receive<TunnelRunner.RunFailure>(runFailed)
+    do my.Receive<TunnelRunner.RunOk>(runOk)
+    
+    member private _.RunTunnel (RunTunnel config) :unit =
+        Trace.Assert <| not (runners.ContainsKey config.Name)
+        let runner = ActorBase.Context.ActorOf(Props.Create<TunnelRunner.Actor>(my.Self, config))
+        runners[config.Name] <- runner
+        config.IsWaiting <- true
     
 let init (model :MainWindowViewModel) =
     Actor.ActorOf(Props.Create<SshManager>(model), "ssh-manager")

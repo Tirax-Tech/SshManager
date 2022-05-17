@@ -27,3 +27,9 @@ type MainWindow () as this =
     member private _.AddTunnel(_ :obj, e :RoutedEventArgs) =
         manager.Tell RegisterTunnel
         e.Handled <- true
+        
+    member private _.RunTunnel(sender :obj, e :RoutedEventArgs) =
+        let button = sender :?> Button
+        let tunnel = button.Tag :?> TunnelConfig
+        manager.Tell (RunTunnel tunnel)
+        e.Handled <- true
