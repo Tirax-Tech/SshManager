@@ -1,5 +1,6 @@
 ﻿module Tirax.SshManager.SshManager
 
+open System
 open System.Collections.Generic
 open System.Diagnostics
 open System.IO
@@ -48,13 +49,19 @@ module SshManager =
         let lifetime = Application.Current.ApplicationLifetime :?> IClassicDesktopStyleApplicationLifetime
         lifetime.Shutdown()
     }
+    
+type private ManagerInit = ManagerInit
 
-type SshManager(model :MainWindowViewModel) as my =
+type SshManager(storage :Storage.Storage, model :MainWindowViewModel) as my =
     inherit ReceiveActor()
+    
+    do my.Self.Tell ManagerInit
     
     let runners = Dictionary<string,IActorRef>()
     
-    let registerTunnel _ = model |> SshManager.addTunnel Debug.WriteLine model.Tunnels.Add
+    let registerTunnel _ =
+        model |> SshManager.addTunnel Debug.WriteLine model.Tunnels.Add
+        storage.Save model.Tunnels
     
     let quit _ =
         if runners.Count = 0 then
@@ -79,12 +86,19 @@ type SshManager(model :MainWindowViewModel) as my =
         tunnel.IsWaiting <- false
         tunnel.IsRunning <- true
     
+    do my.ReceiveAsync<ManagerInit>(Func<_,_>(my.Init))
     do my.Receive<RegisterTunnel>(registerTunnel)
     do my.Receive<RunTunnel>(my.RunTunnel)
     do my.ReceiveAsync<Quit>(quit)
     do my.ReceiveAsync<TunnelRunner.Quited>(quited)
     do my.Receive<TunnelRunner.RunFailure>(runFailed)
     do my.Receive<TunnelRunner.RunOk>(runOk)
+    
+    member private _.Init _ =
+        upcast (async {
+            let! (Storage.LoadResult tunnels) = storage.Load()
+            tunnels |> Seq.iter model.Tunnels.Add
+        } |> Async.StartImmediateAsTask)
     
     member private _.RunTunnel (RunTunnel config) :unit =
         Trace.Assert <| not (runners.ContainsKey config.Name)
@@ -93,4 +107,7 @@ type SshManager(model :MainWindowViewModel) as my =
         config.IsWaiting <- true
     
 let init (model :MainWindowViewModel) =
-    Actor.ActorOf(Props.Create<SshManager>(model), "ssh-manager")
+    let data_file = FileInfo("ssh-manager.json")
+    let option = { Storage.DataFile = data_file }
+    let storage = Storage.Storage <| Actor.ActorOf(Props.Create<Storage.FileManager>(option), "storage")
+    Actor.ActorOf(Props.Create<SshManager>(storage, model), "ssh-manager")

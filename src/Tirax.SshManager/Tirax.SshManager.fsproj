@@ -16,6 +16,7 @@
     <Compile Include="ViewModels\Domain.fs" />
     <Compile Include="ViewModels\ViewModelBase.fs" />
     <Compile Include="ViewModels\MainWindowViewModel.fs" />
+    <Compile Include="Storage.fs" />
     <Compile Include="TunnelRunner.fs" />
     <Compile Include="SshManager.fs" />
     <Compile Include="Views\MainWindow.axaml.fs" />
