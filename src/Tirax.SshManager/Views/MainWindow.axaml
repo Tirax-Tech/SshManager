@@ -32,7 +32,7 @@
                 <Button Click="AddTunnel">Add</Button>
             </StackPanel>
         </Border>
-        <DataGrid Name="TunnelTable" Items="{Binding Tunnels}" AutoGenerateColumns="True">
+        <DataGrid Name="TunnelTable" Items="{Binding Tunnels}" AutoGenerateColumns="True" KeyUp="GridKeyUp">
             <DataGrid.Columns >
                 <DataGridTemplateColumn Header="Action">
                     <DataGridTemplateColumn.CellTemplate>

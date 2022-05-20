@@ -16,6 +16,7 @@ let private config = File.ReadAllText "config.hocon" |> ConfigurationFactory.Par
 let Actor = ActorSystem.Create("SshManager", config)
 
 type RegisterTunnel = RegisterTunnel
+type UnregisterTunnel = UnregisterTunnel of name:string
 type RunTunnel = RunTunnel of TunnelConfig
 type StopTunnel = StopTunnel of name:string
 type Quit = Quit
@@ -68,9 +69,10 @@ type SshManager(storage :Storage.Storage, model :MainWindowViewModel) as my =
     
     let quited (TunnelRunner.Quited name) =
         Trace.Assert <| runners.Remove name
-        let view_state = model.Tunnels |> Seq.find(fun t -> t.Name = name)
-        view_state.IsWaiting <- false
-        view_state.IsRunning <- false
+        match model.Tunnels |> Seq.tryFind (TunnelConfig.name >> (=) name) with
+        | Some view_state -> view_state.IsWaiting <- false
+                             view_state.IsRunning <- false
+        | None -> ()
         
     let runFailed (TunnelRunner.RunFailure (tunnel, ex)) =
         Trace.Assert <| runners.Remove tunnel.Name
@@ -83,6 +85,7 @@ type SshManager(storage :Storage.Storage, model :MainWindowViewModel) as my =
     
     do my.ReceiveAsync<ManagerInit>(Func<_,_>(my.Init))
     do my.Receive<RegisterTunnel>(registerTunnel)
+    do my.Receive<UnregisterTunnel>(my.UnregisterTunnel)
     do my.Receive<RunTunnel>(my.RunTunnel)
     do my.Receive<StopTunnel>(my.StopTunnel)
     do my.ReceiveAsync<Quit>(Func<_,_>(my.Quit))
@@ -126,6 +129,12 @@ type SshManager(storage :Storage.Storage, model :MainWindowViewModel) as my =
             model.Tunnels |> Seq.iter(fun t -> t.IsWaiting <- true)
             runners.Values |> Seq.iter (fun r -> r.Tell PoisonPill.Instance)
             Task.CompletedTask
+            
+    member private _.UnregisterTunnel (UnregisterTunnel name) :unit =
+        if runners.ContainsKey name then runners[name].Tell PoisonPill.Instance
+        let index = model.Tunnels |> Seq.findIndex (TunnelConfig.name >> (=) name)
+        model.Tunnels.RemoveAt index
+        storage.Save model.Tunnels
     
 let init (model :MainWindowViewModel) =
     let data_file = FileInfo("ssh-manager.json")

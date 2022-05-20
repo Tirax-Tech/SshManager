@@ -34,4 +34,5 @@ type TunnelConfig() =
     member this.Stoppable= this.IsRunning && not this.IsWaiting
     
 module TunnelConfig =
+    let name (config :TunnelConfig) = config.Name
     let isRunning (config :TunnelConfig) = config.IsRunning

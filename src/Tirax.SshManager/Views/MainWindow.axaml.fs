@@ -3,6 +3,7 @@ namespace Tirax.SshManager.Views
 open Akka.Actor
 open Avalonia
 open Avalonia.Controls
+open Avalonia.Input
 open Avalonia.Interactivity
 open Avalonia.Markup.Xaml
 open Tirax.SshManager.SshManager
@@ -39,3 +40,9 @@ type MainWindow () as this =
         let tunnel = button.Tag :?> TunnelConfig
         manager.Tell (StopTunnel tunnel.Name)
         e.Handled <- true
+        
+    member private my.GridKeyUp(sender :obj, key :KeyEventArgs) =
+        if key.Key = Key.Delete && key.KeyModifiers = KeyModifiers.None then
+            let tunnel = (sender :?> DataGrid).SelectedItem :?> TunnelConfig
+            manager.Tell (UnregisterTunnel tunnel.Name)
+            key.Handled <- true
