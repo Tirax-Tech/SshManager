@@ -17,7 +17,7 @@ type private ProcessCheck = ProcessCheck
 let startSshProcess (tunnel :TunnelConfig) =
     let ssh_server = ServerInputFormat.toSshServerFormat (tunnel.SshHost, tunnel.SshPort)
     try
-        let p = Process.Start("ssh", ["-fN"; ssh_server; $"{tunnel.LocalPort}:{tunnel.RemoteHost}:{tunnel.RemotePort}"])
+        let p = Process.Start("ssh", ["-fN"; ssh_server; "-L"; $"{tunnel.LocalPort}:{tunnel.RemoteHost}:{tunnel.RemotePort}"])
         if p.HasExited then Error (exn "Process has exited")
         else Ok p
     with

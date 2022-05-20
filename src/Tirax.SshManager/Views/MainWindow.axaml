@@ -33,13 +33,13 @@
             </StackPanel>
         </Border>
         <DataGrid Name="TunnelTable" Items="{Binding Tunnels}" AutoGenerateColumns="True">
-            <DataGrid.Columns>
+            <DataGrid.Columns >
                 <DataGridTemplateColumn Header="Action">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="vm:TunnelConfig">
                             <StackPanel Orientation="Horizontal">
                                 <Button IsVisible="{Binding Runnable}" Click="RunTunnel" Tag="{Binding}">Run</Button>
-                                <Button IsVisible="{Binding Stoppable}">Stop</Button>
+                                <Button IsVisible="{Binding Stoppable}" Click="StopTunnel" Tag="{Binding}">Stop</Button>
                                 <TextBlock IsVisible="{Binding IsWaiting}">Waiting...</TextBlock>
                             </StackPanel>
                         </DataTemplate>

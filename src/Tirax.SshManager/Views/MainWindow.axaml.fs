@@ -33,3 +33,9 @@ type MainWindow () as this =
         let tunnel = button.Tag :?> TunnelConfig
         manager.Tell (RunTunnel tunnel)
         e.Handled <- true
+        
+    member private _.StopTunnel(sender :obj, e :RoutedEventArgs) =
+        let button = sender :?> Button
+        let tunnel = button.Tag :?> TunnelConfig
+        manager.Tell (StopTunnel tunnel.Name)
+        e.Handled <- true

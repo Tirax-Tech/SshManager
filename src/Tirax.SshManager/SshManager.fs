@@ -17,6 +17,7 @@ let Actor = ActorSystem.Create("SshManager", config)
 
 type RegisterTunnel = RegisterTunnel
 type RunTunnel = RunTunnel of TunnelConfig
+type StopTunnel = StopTunnel of name:string
 type Quit = Quit
 
 module SshManager =
@@ -36,7 +37,7 @@ module SshManager =
                 let ssh_host, ssh_port = ssh_server.Value
                 let remote_host, remote_port = remote_server.Value
                 
-                TunnelConfig( Name = model.NewServerWithPort,
+                TunnelConfig( Name = model.NewConnectionName,
                               SshHost = ssh_host,
                               SshPort = ssh_port,
                               LocalPort = model.NewLocalPort,
@@ -62,20 +63,14 @@ type SshManager(storage :Storage.Storage, model :MainWindowViewModel) as my =
     let registerTunnel _ =
         model |> SshManager.addTunnel Debug.WriteLine model.Tunnels.Add
         storage.Save model.Tunnels
-    
-    let quit _ =
-        if runners.Count = 0 then
-            SshManager.shutdown()
-        else
-            model.Tunnels |> Seq.iter(fun t -> t.IsWaiting <- true)
-            runners.Values |> Seq.iter (fun r -> r.Tell PoisonPill.Instance)
-            Task.CompletedTask
         
+    let canShutdown() = runners.Count = 0
+    
     let quited (TunnelRunner.Quited name) =
         Trace.Assert <| runners.Remove name
-        if runners.Count = 0
-        then SshManager.shutdown()
-        else Task.CompletedTask
+        let view_state = model.Tunnels |> Seq.find(fun t -> t.Name = name)
+        view_state.IsWaiting <- false
+        view_state.IsRunning <- false
         
     let runFailed (TunnelRunner.RunFailure (tunnel, ex)) =
         Trace.Assert <| runners.Remove tunnel.Name
@@ -89,8 +84,9 @@ type SshManager(storage :Storage.Storage, model :MainWindowViewModel) as my =
     do my.ReceiveAsync<ManagerInit>(Func<_,_>(my.Init))
     do my.Receive<RegisterTunnel>(registerTunnel)
     do my.Receive<RunTunnel>(my.RunTunnel)
-    do my.ReceiveAsync<Quit>(quit)
-    do my.ReceiveAsync<TunnelRunner.Quited>(quited)
+    do my.Receive<StopTunnel>(my.StopTunnel)
+    do my.ReceiveAsync<Quit>(Func<_,_>(my.Quit))
+    do my.Receive<TunnelRunner.Quited>(quited)
     do my.Receive<TunnelRunner.RunFailure>(runFailed)
     do my.Receive<TunnelRunner.RunOk>(runOk)
     
@@ -105,6 +101,31 @@ type SshManager(storage :Storage.Storage, model :MainWindowViewModel) as my =
         let runner = ActorBase.Context.ActorOf(Props.Create<TunnelRunner.Actor>(my.Self, config))
         runners[config.Name] <- runner
         config.IsWaiting <- true
+        
+    member private _.StopTunnel (StopTunnel name) :unit =
+        Trace.Assert (runners.ContainsKey name)
+        runners[name].Tell PoisonPill.Instance
+        let view_state = model.Tunnels |> Seq.find(fun t -> t.Name = name)
+        view_state.IsWaiting <- true
+        
+    member private _.QuitState() =
+        my.ReceiveAsync<TunnelRunner.Quited>(Func<_,_>(my.QuitedToShutdown))
+        
+    member private _.QuitedToShutdown quit_message =
+        quited quit_message
+        
+        if canShutdown()
+        then SshManager.shutdown()
+        else Task.CompletedTask
+        
+    member private _.Quit _ =
+        if canShutdown() then
+            SshManager.shutdown()
+        else
+            my.Become(my.QuitState)
+            model.Tunnels |> Seq.iter(fun t -> t.IsWaiting <- true)
+            runners.Values |> Seq.iter (fun r -> r.Tell PoisonPill.Instance)
+            Task.CompletedTask
     
 let init (model :MainWindowViewModel) =
     let data_file = FileInfo("ssh-manager.json")
