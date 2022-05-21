@@ -12,6 +12,7 @@
     <None Remove=".gitignore" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppConfig.fs" />
     <Compile Include="Models\ServerInputFormat.fs" />
     <Compile Include="ViewModels\Domain.fs" />
     <Compile Include="ViewModels\ViewModelBase.fs" />

@@ -6,6 +6,7 @@ open Avalonia.Controls
 open Avalonia.Input
 open Avalonia.Interactivity
 open Avalonia.Markup.Xaml
+open Tirax.SshManager
 open Tirax.SshManager.SshManager
 open Tirax.SshManager.ViewModels
 
@@ -15,6 +16,7 @@ type MainWindow () as this =
     let mutable manager :IActorRef = ActorRefs.Nobody
 
     do this.InitializeComponent()
+    do this.Title <- AppConfig.Title.Value
     
     member _.Manager with set v = manager <- v
     member private my.Model = my.DataContext :?> MainWindowViewModel
