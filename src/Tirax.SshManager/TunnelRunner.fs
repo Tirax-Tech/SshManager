@@ -15,9 +15,11 @@ type Quited = Quited of name:string
 type private ProcessCheck = ProcessCheck
 
 let startSshProcess (tunnel :TunnelConfig) =
-    let ssh_server = ServerInputFormat.toSshServerFormat (tunnel.SshHost, tunnel.SshPort)
+    let process_parameters = if tunnel.SshPort |> ServerInputFormat.isPortUnspecified
+                             then [] else ["-p"; tunnel.SshPort.ToString()]
+    let process_parameters = process_parameters @ ["-fN"; tunnel.SshHost; "-L"; $"{tunnel.LocalPort}:{tunnel.RemoteHost}:{tunnel.RemotePort}"]
     try
-        let p = Process.Start("ssh", ["-fN"; ssh_server; "-L"; $"{tunnel.LocalPort}:{tunnel.RemoteHost}:{tunnel.RemotePort}"])
+        let p = Process.Start("ssh", process_parameters)
         if p.HasExited then Error (exn "Process has exited")
         else Ok p
     with
