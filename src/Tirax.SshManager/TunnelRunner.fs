@@ -19,9 +19,7 @@ let startSshProcess (tunnel :TunnelConfig) =
                              then [] else ["-p"; tunnel.SshPort.ToString()]
     let process_parameters = process_parameters @ ["-fN"; tunnel.SshHost; "-L"; $"{tunnel.LocalPort}:{tunnel.RemoteHost}:{tunnel.RemotePort}"]
     try
-        let p = Process.Start("ssh", process_parameters)
-        if p.HasExited then Error (exn "Process has exited")
-        else Ok p
+        Ok <| Process.Start("ssh", process_parameters)
     with
     | :? Win32Exception as e -> Error (e :> exn)
 
@@ -42,8 +40,12 @@ type Actor(parent :IActorRef, tunnel :TunnelConfig) as my =
         my.Self.Tell PoisonPill.Instance
         
     let processCheck struct (my, _) =
-        match startSshProcess tunnel with
+        let self = my.Self
+        let exit_handler _ = self.Tell PoisonPill.Instance
+        match tunnel |> startSshProcess with
         | Ok p -> ssh_process <- Some p
+                  p.EnableRaisingEvents <- true
+                  p.Exited.Add (fun _ -> exit_handler())
                   updateStatus (Some true)
         | Error e -> Trace.WriteLine $"Start process failed with %A{e}"
                      my |> quit
