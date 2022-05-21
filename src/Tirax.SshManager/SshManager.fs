@@ -1,6 +1,5 @@
 ﻿module Tirax.SshManager.SshManager
 
-open System
 open System.Collections.Generic
 open System.Diagnostics
 open System.IO
@@ -10,6 +9,8 @@ open Akka.Actor
 open Akka.Configuration
 open Avalonia
 open Avalonia.Controls.ApplicationLifetimes
+open RZ.FSharp.Extension.Prelude
+open RZ.FSharp.Akka
 open Tirax.SshManager.ManagerCommands
 open Tirax.SshManager.ViewModels
 open Tirax.SshManager.Models
@@ -48,44 +49,63 @@ module SshManager =
                               RemotePort = remote_port )
                 |> cont
                 
-    let shutdown() :Task = task {
-        do! Task.Run(fun _ -> Actor.Terminate())
-        let lifetime = Application.Current.ApplicationLifetime :?> IClassicDesktopStyleApplicationLifetime
-        lifetime.Shutdown()
-    }
+    let shutdown() =
+        // Somehow using async { } causes blocking on Task.Run, while using Async.AwaitTask works fine... 🤔
+        task {
+            do! Task.Run(fun _ -> Actor.Terminate())
+            let lifetime = Application.Current.ApplicationLifetime :?> IClassicDesktopStyleApplicationLifetime
+            lifetime.Shutdown()
+        } |> Async.AwaitTask
     
 type private ManagerInit = ManagerInit
 
 type SshManager(storage :Storage.Storage, model :MainWindowViewModel) as my =
-    inherit ReceiveActor()
+    inherit FsReceiveActor()
     
     do my.Self.Tell ManagerInit
     
     let runners = Dictionary<string,IActorRef>()
     
+    let init _ = async {
+        let! (Storage.LoadResult tunnels) = storage.Load()
+        tunnels |> Seq.iter model.Tunnels.Add
+    }
+    
     let registerTunnel _ =
         model |> SshManager.addTunnel Debug.WriteLine model.Tunnels.Add
         storage.Save model.Tunnels
         
-    let canShutdown() = runners.Count = 0
+    let tryShutdownOrElse cannot_shutdown (ctx :ActorContext) =
+        if runners.Count = 0 then SshManager.shutdown() else cannot_shutdown ctx
     
     let quited (TunnelRunner.Quited name) =
         Trace.Assert <| runners.Remove name
         
+    let quitedToShutdown struct (ctx, quit_message) =
+        let do_nothing _ = Async.return' ()
+        quited quit_message
+        ctx |> tryShutdownOrElse do_nothing
+        
+    let quitState (actor :FsActorReceivable) =
+        actor.FsReceiveAsync<TunnelRunner.Quited>(quitedToShutdown)
+        
+    let quit struct (ctx, Quit) =
+        ctx |> tryShutdownOrElse (
+            fun ctx ->
+                ctx.Become quitState
+                model.Tunnels |> Seq.iter(fun t -> t.IsWaiting <- true)
+                runners.Values |> Seq.iter (fun r -> r.Tell PoisonPill.Instance)
+                Async.return' ()
+            )
+        
     do my.Receive<UpdateUI>(fun (UpdateUI f) -> f())
-    do my.ReceiveAsync<ManagerInit>(Func<_,_>(my.Init))
+    do my.FsReceiveAsync<ManagerInit>(init)
     do my.Receive<RegisterTunnel>(registerTunnel)
     do my.Receive<UnregisterTunnel>(my.UnregisterTunnel)
     do my.Receive<RunTunnel>(my.RunTunnel)
     do my.Receive<StopTunnel>(my.StopTunnel)
-    do my.ReceiveAsync<Quit>(Func<_,_>(my.Quit))
+    do my.FsReceiveAsync<Quit>(quit)
     do my.Receive<TunnelRunner.Quited>(quited)
-    
-    member private _.Init _ =
-        upcast (async {
-            let! (Storage.LoadResult tunnels) = storage.Load()
-            tunnels |> Seq.iter model.Tunnels.Add
-        } |> Async.StartImmediateAsTask)
     
     member private _.RunTunnel (RunTunnel config) :unit =
         Trace.Assert <| not (runners.ContainsKey config.Name)
@@ -98,25 +118,6 @@ type SshManager(storage :Storage.Storage, model :MainWindowViewModel) as my =
         let view_state = model.Tunnels |> Seq.find(fun t -> t.Name = name)
         view_state.IsWaiting <- true
         
-    member private _.QuitState() =
-        my.ReceiveAsync<TunnelRunner.Quited>(Func<_,_>(my.QuitedToShutdown))
-        
-    member private _.QuitedToShutdown quit_message =
-        quited quit_message
-        
-        if canShutdown()
-        then SshManager.shutdown()
-        else Task.CompletedTask
-        
-    member private _.Quit _ =
-        if canShutdown() then
-            SshManager.shutdown()
-        else
-            my.Become(my.QuitState)
-            model.Tunnels |> Seq.iter(fun t -> t.IsWaiting <- true)
-            runners.Values |> Seq.iter (fun r -> r.Tell PoisonPill.Instance)
-            Task.CompletedTask
-            
     member private _.UnregisterTunnel (UnregisterTunnel name) :unit =
         if runners.ContainsKey name then runners[name].Tell PoisonPill.Instance
         let index = model.Tunnels |> Seq.findIndex (TunnelConfig.name >> (=) name)

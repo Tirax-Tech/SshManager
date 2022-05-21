@@ -13,6 +13,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppConfig.fs" />
+    <Compile Include="RzActor.fs" />
     <Compile Include="Models\ServerInputFormat.fs" />
     <Compile Include="ViewModels\Domain.fs" />
     <Compile Include="ViewModels\ViewModelBase.fs" />

@@ -4,6 +4,7 @@ module Tirax.SshManager.TunnelRunner
 open System.ComponentModel
 open System.Diagnostics
 open Akka.Actor
+open RZ.FSharp.Akka
 open RZ.FSharp.Extension
 open Tirax.SshManager.ManagerCommands
 open Tirax.SshManager.Models
@@ -25,7 +26,7 @@ let startSshProcess (tunnel :TunnelConfig) =
     | :? Win32Exception as e -> Error (e :> exn)
 
 type Actor(parent :IActorRef, tunnel :TunnelConfig) as my =
-    inherit ReceiveActor()
+    inherit FsReceiveActor()
     
     let mutable ssh_process :Process option = None
     
@@ -35,9 +36,20 @@ type Actor(parent :IActorRef, tunnel :TunnelConfig) as my =
                                | None -> true, false
         parent.Tell (UpdateUI <| fun _ -> tunnel.IsWaiting <- waiting
                                           tunnel.IsRunning <- running)
+        
+    let quit (my :ActorContext) =
+        parent.Tell (UpdateUI <| fun _ -> tunnel.IsWaiting <- true)
+        my.Self.Tell PoisonPill.Instance
+        
+    let processCheck struct (my, _) =
+        match startSshProcess tunnel with
+        | Ok p -> ssh_process <- Some p
+                  updateStatus (Some true)
+        | Error e -> Trace.WriteLine $"Start process failed with %A{e}"
+                     my |> quit
     
     do my.Self.Tell ProcessCheck
-    do my.Receive<ProcessCheck>(my.ProcessCheck)
+    do my.FsReceive<ProcessCheck>(processCheck)
     
     override my.PostStop() =
         if ssh_process.IsSome then
@@ -47,14 +59,3 @@ type Actor(parent :IActorRef, tunnel :TunnelConfig) as my =
             ssh_process <- None
         parent.Tell (Quited tunnel.Name)
         updateStatus (Some false)
-
-    member private my.ProcessCheck _ :unit =
-        match startSshProcess tunnel with
-        | Ok p -> ssh_process <- Some p
-                  updateStatus (Some true)
-        | Error e -> Trace.WriteLine $"Start process failed with %A{e}"
-                     my.Quit()
-                     
-    member private my.Quit () =
-        parent.Tell (UpdateUI <| fun _ -> tunnel.IsWaiting <- true)
-        my.Self.Tell PoisonPill.Instance
