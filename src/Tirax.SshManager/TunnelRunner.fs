@@ -47,6 +47,8 @@ type Actor(parent :IActorRef, tunnel :TunnelConfig) as my =
                   updateStatus (Some true)
         | Error e -> Trace.WriteLine $"Start process failed with %A{e}"
                      my |> quit
+                     
+    do parent.Tell (UpdateUI <| fun _ -> tunnel.IsWaiting <- true)
     
     do my.Self.Tell ProcessCheck
     do my.FsReceive<ProcessCheck>(processCheck)

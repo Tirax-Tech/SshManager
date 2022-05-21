@@ -82,8 +82,8 @@ type SshManager(storage :Storage.Storage, model :MainWindowViewModel) as my =
         Trace.Assert <| runners.Remove name
         
     let quitedToShutdown struct (ctx, quit_message) =
-        let do_nothing _ = Async.return' ()
         quited quit_message
+        let do_nothing _ = Async.return' ()
         ctx |> tryShutdownOrElse do_nothing
         
     let quitState (actor :FsActorReceivable) =
@@ -93,7 +93,6 @@ type SshManager(storage :Storage.Storage, model :MainWindowViewModel) as my =
         ctx |> tryShutdownOrElse (
             fun ctx ->
                 ctx.Become quitState
-                model.Tunnels |> Seq.iter(fun t -> t.IsWaiting <- true)
                 runners.Values |> Seq.iter (fun r -> r.Tell PoisonPill.Instance)
                 Async.return' ()
             )
@@ -108,21 +107,19 @@ type SshManager(storage :Storage.Storage, model :MainWindowViewModel) as my =
     do my.Receive<TunnelRunner.Quited>(quited)
     
     member private _.RunTunnel (RunTunnel config) :unit =
-        Trace.Assert <| not (runners.ContainsKey config.Name)
-        runners[config.Name] <- ActorBase.Context.ActorOf(Props.Create<TunnelRunner.Actor>(my.Self, config), WebUtility.UrlEncode config.Name)
-        config.IsWaiting <- true
+        if not (runners.ContainsKey config.Name) then
+            runners[config.Name] <- ActorBase.Context.ActorOf(Props.Create<TunnelRunner.Actor>(my.Self, config), WebUtility.UrlEncode config.Name)
         
     member private _.StopTunnel (StopTunnel name) :unit =
-        Trace.Assert (runners.ContainsKey name)
-        runners[name].Tell PoisonPill.Instance
-        let view_state = model.Tunnels |> Seq.find(fun t -> t.Name = name)
-        view_state.IsWaiting <- true
+        if runners.ContainsKey name then
+            runners[name].Tell PoisonPill.Instance
         
     member private _.UnregisterTunnel (UnregisterTunnel name) :unit =
         if runners.ContainsKey name then runners[name].Tell PoisonPill.Instance
-        let index = model.Tunnels |> Seq.findIndex (TunnelConfig.name >> (=) name)
-        model.Tunnels.RemoveAt index
-        storage.Save model.Tunnels
+        let index = model.Tunnels |> Seq.tryFindIndex (TunnelConfig.name >> (=) name)
+        if index.IsSome then
+            model.Tunnels.RemoveAt index.Value
+            storage.Save model.Tunnels
     
 let init (model :MainWindowViewModel) =
     let data_file = FileInfo("ssh-manager.json")
