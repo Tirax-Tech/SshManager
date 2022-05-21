@@ -5,11 +5,10 @@ open System.ComponentModel
 open System.Diagnostics
 open Akka.Actor
 open RZ.FSharp.Extension
+open Tirax.SshManager.ManagerCommands
 open Tirax.SshManager.Models
 open Tirax.SshManager.ViewModels
 
-type RunOk = RunOk of tunnel:TunnelConfig
-type RunFailure = RunFailure of tunnel:TunnelConfig * error:string
 type Quited = Quited of name:string
 
 type private ProcessCheck = ProcessCheck
@@ -30,6 +29,13 @@ type Actor(parent :IActorRef, tunnel :TunnelConfig) as my =
     
     let mutable ssh_process :Process option = None
     
+    let updateStatus state =
+        let waiting, running = match state with
+                               | Some v -> false, v
+                               | None -> true, false
+        parent.Tell (UpdateUI <| fun _ -> tunnel.IsWaiting <- waiting
+                                          tunnel.IsRunning <- running)
+    
     do my.Self.Tell ProcessCheck
     do my.Receive<ProcessCheck>(my.ProcessCheck)
     
@@ -40,10 +46,15 @@ type Actor(parent :IActorRef, tunnel :TunnelConfig) as my =
             p.Dispose()
             ssh_process <- None
         parent.Tell (Quited tunnel.Name)
+        updateStatus (Some false)
 
     member private my.ProcessCheck _ :unit =
         match startSshProcess tunnel with
         | Ok p -> ssh_process <- Some p
-                  parent.Tell <| RunOk tunnel
-        | Error e -> parent.Tell <| RunFailure (tunnel, e.Message)
-                     my.Self.Tell PoisonPill.Instance
+                  updateStatus (Some true)
+        | Error e -> Trace.WriteLine $"Start process failed with %A{e}"
+                     my.Quit()
+                     
+    member private my.Quit () =
+        parent.Tell (UpdateUI <| fun _ -> tunnel.IsWaiting <- true)
+        my.Self.Tell PoisonPill.Instance

@@ -4,11 +4,13 @@ open System
 open System.Collections.Generic
 open System.Diagnostics
 open System.IO
+open System.Net
 open System.Threading.Tasks
 open Akka.Actor
 open Akka.Configuration
 open Avalonia
 open Avalonia.Controls.ApplicationLifetimes
+open Tirax.SshManager.ManagerCommands
 open Tirax.SshManager.ViewModels
 open Tirax.SshManager.Models
 
@@ -69,20 +71,8 @@ type SshManager(storage :Storage.Storage, model :MainWindowViewModel) as my =
     
     let quited (TunnelRunner.Quited name) =
         Trace.Assert <| runners.Remove name
-        match model.Tunnels |> Seq.tryFind (TunnelConfig.name >> (=) name) with
-        | Some view_state -> view_state.IsWaiting <- false
-                             view_state.IsRunning <- false
-        | None -> ()
         
-    let runFailed (TunnelRunner.RunFailure (tunnel, ex)) =
-        Trace.Assert <| runners.Remove tunnel.Name
-        Trace.WriteLine $"Failed to run tunnel: %s{tunnel.Name} - %s{ex}"
-        tunnel.IsWaiting <- false
-        
-    let runOk (TunnelRunner.RunOk tunnel) =
-        tunnel.IsWaiting <- false
-        tunnel.IsRunning <- true
-    
+    do my.Receive<UpdateUI>(fun (UpdateUI f) -> f())
     do my.ReceiveAsync<ManagerInit>(Func<_,_>(my.Init))
     do my.Receive<RegisterTunnel>(registerTunnel)
     do my.Receive<UnregisterTunnel>(my.UnregisterTunnel)
@@ -90,8 +80,6 @@ type SshManager(storage :Storage.Storage, model :MainWindowViewModel) as my =
     do my.Receive<StopTunnel>(my.StopTunnel)
     do my.ReceiveAsync<Quit>(Func<_,_>(my.Quit))
     do my.Receive<TunnelRunner.Quited>(quited)
-    do my.Receive<TunnelRunner.RunFailure>(runFailed)
-    do my.Receive<TunnelRunner.RunOk>(runOk)
     
     member private _.Init _ =
         upcast (async {
@@ -101,8 +89,7 @@ type SshManager(storage :Storage.Storage, model :MainWindowViewModel) as my =
     
     member private _.RunTunnel (RunTunnel config) :unit =
         Trace.Assert <| not (runners.ContainsKey config.Name)
-        let runner = ActorBase.Context.ActorOf(Props.Create<TunnelRunner.Actor>(my.Self, config))
-        runners[config.Name] <- runner
+        runners[config.Name] <- ActorBase.Context.ActorOf(Props.Create<TunnelRunner.Actor>(my.Self, config), WebUtility.UrlEncode config.Name)
         config.IsWaiting <- true
         
     member private _.StopTunnel (StopTunnel name) :unit =
