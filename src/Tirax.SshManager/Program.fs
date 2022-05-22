@@ -3,6 +3,7 @@
 open System
 open Avalonia
 open Avalonia.ReactiveUI
+open Serilog
 open Tirax.SshManager
 
 module Program =
@@ -16,7 +17,10 @@ module Program =
             } |> Seq.toList
         assert (agents |> Seq.forall snd)
         if agents.Length = 0 then
+            Log.Information "Starting ssh-agent"
             System.Diagnostics.Process.Start(SshAgentProcessName).Dispose()
+        else
+            Log.Information "ssh-agent already running"
 
     [<CompiledName "BuildAvaloniaApp">] 
     let buildAvaloniaApp () = 
@@ -28,5 +32,12 @@ module Program =
 
     [<EntryPoint; STAThread>]
     let main argv =
-        ensureSSHAgentRun()
-        buildAvaloniaApp().StartWithClassicDesktopLifetime(argv)
+        Log.Logger <- LoggerConfiguration()
+                          .WriteTo.Debug()
+                          .CreateLogger()
+        
+        try
+            ensureSSHAgentRun()
+            buildAvaloniaApp().StartWithClassicDesktopLifetime(argv)
+        finally
+            Log.CloseAndFlush()

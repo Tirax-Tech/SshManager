@@ -7,3 +7,5 @@ ReactiveUI
 RZ.FSharp.Extension
 akka
 MinVer
+Serilog
+Serilog.Sinks.Debug
