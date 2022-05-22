@@ -122,7 +122,5 @@ type SshManager(storage :Storage.Storage, model :MainWindowViewModel) as my =
             storage.Save model.Tunnels
     
 let init (model :MainWindowViewModel) =
-    let data_file = FileInfo("ssh-manager.json")
-    let option = { Storage.DataFile = data_file }
-    let storage = Storage.Storage <| Actor.ActorOf(Props.Create<Storage.FileManager>(option), "storage")
+    let storage = Storage.Storage <| Actor.ActorOf(Props.Create<Storage.FileManager>(), "storage")
     Actor.ActorOf(Props.Create<SshManager>(storage, model), "ssh-manager")
