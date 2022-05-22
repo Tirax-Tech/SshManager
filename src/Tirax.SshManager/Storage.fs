@@ -9,10 +9,6 @@ open RZ.FSharp.Akka
 open RZ.FSharp.Extension
 open Tirax.SshManager.ViewModels
 
-type FileStorageManagerOption = {
-    DataFile :FileInfo
-}
-
 type Load = Load
 type LoadResult = LoadResult of TunnelConfig seq
 type Save = Save of TunnelConfig seq
@@ -30,7 +26,7 @@ let loadFile (file :FileInfo) =
     then Some (File.ReadAllText file.FullName)
     else None
         
-type FileManager(option) as my =
+type FileManager() as my =
     inherit FsReceiveActor()
     
     let iso_store = IsolatedStorageFile.GetUserStoreForApplication()
@@ -43,20 +39,16 @@ type FileManager(option) as my =
                        then None
                        else Some <| StreamReader(data_file).ReadToEnd()
         data_file.Close()
-        let data = iso_data |> Option.orElseWith (fun _ -> option.DataFile |> loadFile)
-                            |> Option.bind (Option.safeCall deserializeTunnelConfig)
+        let data = iso_data |> Option.bind (Option.safeCall deserializeTunnelConfig)
                             |> Option.defaultValue Seq.empty
                             |> Seq.toArray
-        let need_migration = data_file.Length = 0 && data.Length > 0
-        if need_migration then my.Self.Tell (Save data)
         my.Sender.Tell (LoadResult data)
         
     let save struct (_, Save tunnels) =
-        let content = JsonSerializer.Serialize<TunnelConfig seq> tunnels
         use data_file = openDataFile FileMode.Create |> StreamWriter
-        data_file.Write(content)
+        tunnels |> JsonSerializer.Serialize<TunnelConfig seq>
+                |> data_file.Write
         data_file.Close()
-        if option.DataFile.Exists then option.DataFile.Delete()
     
     do my.FsReceive(load)
     do my.FsReceive(save)
