@@ -7,6 +7,7 @@
         x:Class="Tirax.SshManager.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         x:CompileBindings="True"
+        Name="MainWindow"
         Icon="/Assets/avalonia-logo.ico"
         Title="Tirax SSH Manager">
     
@@ -32,9 +33,9 @@
                 <Button Click="AddTunnel">Add</Button>
             </StackPanel>
         </Border>
-        <DataGrid Name="TunnelTable" Items="{Binding Tunnels}" AutoGenerateColumns="True" KeyUp="GridKeyUp">
-            <DataGrid.Columns >
-                <DataGridTemplateColumn Header="Action">
+        <DataGrid Name="TunnelTable" x:DataType="vm:TunnelConfig" DataContext="{Binding Tunnels}" Items="{Binding}" KeyUp="GridKeyUp">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Action" IsReadOnly="True">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="vm:TunnelConfig">
                             <StackPanel Orientation="Horizontal">
@@ -45,6 +46,12 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
+                <DataGridTextColumn Header="SSH Host" Binding="{Binding SshHost}" />
+                <DataGridTextColumn Header="SSH Port" Binding="{Binding SshPort}" />
+                <DataGridTextColumn Header="Local Port" Binding="{Binding LocalPort}" />
+                <DataGridTextColumn Header="Remote Host" Binding="{Binding RemoteHost}" />
+                <DataGridTextColumn Header="Remote Port" Binding="{Binding RemotePort}" />
             </DataGrid.Columns>
         </DataGrid>
     </DockPanel>
