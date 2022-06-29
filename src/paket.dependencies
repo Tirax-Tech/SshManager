@@ -2,11 +2,11 @@ source C:\Workspace\nuget
 source https://api.nuget.org/v3/index.json
 
 nuget FSharp.Core
-nuget Avalonia 0.10.13
-nuget Avalonia.Desktop 0.10.13
-nuget Avalonia.Diagnostics 0.10.13
-nuget Avalonia.ReactiveUI 0.10.13
-nuget RZ.FSharp.Extension 1.3.1-alpha.0.2 alpha
+nuget Avalonia 0.10.14
+nuget Avalonia.Desktop
+nuget Avalonia.Diagnostics
+nuget Avalonia.ReactiveUI
+nuget RZ.FSharp.Extension
 nuget akka
 nuget MinVer
 nuget Serilog
