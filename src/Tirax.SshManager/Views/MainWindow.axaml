@@ -33,7 +33,8 @@
                 <Button Click="AddTunnel">Add</Button>
             </StackPanel>
         </Border>
-        <DataGrid Name="TunnelTable" x:DataType="vm:TunnelConfig" DataContext="{Binding Tunnels}" Items="{Binding}" KeyUp="GridKeyUp">
+        <DataGrid Name="TunnelTable" x:DataType="vm:TunnelConfig" DataContext="{Binding Tunnels}" Items="{Binding}" KeyUp="GridKeyUp"
+                  BeginningEdit="EditingCells" CellEditEnded="CellEditingEnded">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Header="Action" IsReadOnly="True">
                     <DataGridTemplateColumn.CellTemplate>

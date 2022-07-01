@@ -48,3 +48,13 @@ type MainWindow () as this =
             let tunnel = (sender :?> DataGrid).SelectedItem :?> TunnelConfig
             manager.Tell (UnregisterTunnel tunnel.Name)
             key.Handled <- true
+            
+    member private _.EditingCells(_ :obj, e :DataGridBeginningEditEventArgs) =
+        let data = e.Row.DataContext :?> TunnelConfig
+        data.IsEditing <- true
+        
+    member private _.CellEditingEnded(_ :obj, e :DataGridCellEditEndedEventArgs) =
+        let data = e.Row.DataContext :?> TunnelConfig
+        data.IsEditing <- false
+        manager.Tell (StopTunnel data.Name)
+        manager.Tell UpdateModel

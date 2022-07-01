@@ -22,6 +22,7 @@ type RegisterTunnel = RegisterTunnel
 type UnregisterTunnel = UnregisterTunnel of name:string
 type RunTunnel = RunTunnel of TunnelConfig
 type StopTunnel = StopTunnel of name:string
+type UpdateModel = UpdateModel
 type Quit = Quit
 
 module SshManager =
@@ -75,6 +76,9 @@ type SshManager(storage :Storage.Storage, model :MainWindowViewModel) as my =
         model |> SshManager.addTunnel Debug.WriteLine model.Tunnels.Add
         storage.Save model.Tunnels
         
+    let updateModel _ =
+        storage.Save model.Tunnels
+        
     let tryShutdownOrElse cannot_shutdown (ctx :ActorContext) =
         if runners.Count = 0 then SshManager.shutdown() else cannot_shutdown ctx
     
@@ -103,6 +107,7 @@ type SshManager(storage :Storage.Storage, model :MainWindowViewModel) as my =
     do my.Receive<UnregisterTunnel>(my.UnregisterTunnel)
     do my.Receive<RunTunnel>(my.RunTunnel)
     do my.Receive<StopTunnel>(my.StopTunnel)
+    do my.Receive<UpdateModel>(updateModel)
     do my.FsReceiveAsync<Quit>(quit)
     do my.Receive<TunnelRunner.Quited>(quited)
     
