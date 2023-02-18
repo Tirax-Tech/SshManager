@@ -9,7 +9,6 @@ open Akka.Actor
 open Akka.Configuration
 open Avalonia
 open Avalonia.Controls.ApplicationLifetimes
-open RZ.FSharp.Extension.Prelude
 open RZ.FSharp.Akka
 open Tirax.SshManager.ManagerCommands
 open Tirax.SshManager.ViewModels
@@ -87,7 +86,7 @@ type SshManager(storage :Storage.Storage, model :MainWindowViewModel) as my =
         
     let quitedToShutdown struct (ctx, quit_message) =
         quited quit_message
-        let do_nothing _ = Async.return' ()
+        let do_nothing _ = async.Return ()
         ctx |> tryShutdownOrElse do_nothing
         
     let quitState (actor :FsActorReceivable) =
@@ -98,7 +97,7 @@ type SshManager(storage :Storage.Storage, model :MainWindowViewModel) as my =
             fun ctx ->
                 ctx.Become quitState
                 runners.Values |> Seq.iter (fun r -> r.Tell PoisonPill.Instance)
-                Async.return' ()
+                async.Return ()
             )
         
     do my.Receive<UpdateUI>(fun (UpdateUI f) -> f())
