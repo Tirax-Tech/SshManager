@@ -1,56 +1,55 @@
 ﻿open System
-open System.Threading
-open System.Threading.Tasks
-open Akka.Actor
+open System.Diagnostics
+open System.IO
 open Avalonia
-open Avalonia.Controls
 open Avalonia.ReactiveUI
 open Serilog
 open Tirax.SshManager
-open Tirax.SshManager.ViewModels
-open Tirax.SshManager.Views
-open RZ.FSharp.Extension.Prelude
+open RZ.FSharp.Extension.Avalonia
 
 let [<Literal>] SshAgentProcessName = "ssh-agent"
 let ensureSSHAgentRun() =
     let agents =
         query {
-            for p in System.Diagnostics.Process.GetProcesses() do
+            for p in Process.GetProcesses() do
             where (p.ProcessName = SshAgentProcessName)
             select (p.Id, p.Responding)
         } |> Seq.toList
     assert (agents |> Seq.forall snd)
     if agents.Length = 0 then
         Log.Information "Starting ssh-agent"
-        System.Diagnostics.Process.Start(SshAgentProcessName).Dispose()
+        Process.Start(SshAgentProcessName).Dispose()
     else
         Log.Information "ssh-agent already running"
 
 [<CompiledName "BuildAvaloniaApp">] 
-let buildAvaloniaApp (window_creator: unit -> Window) :AppBuilder =
-    let app = App()
-    app.DataContext <- window_creator
+let buildAvaloniaApp() :AppBuilder =
     AppBuilder
-        .Configure(constant app)
+        .Configure<App>()
         .UsePlatformDetect()
         .LogToTrace(areas = Array.empty)
         .UseReactiveUI()
 
 [<EntryPoint; STAThread>]
-let main argv =
+let main args =
     Log.Logger <- LoggerConfiguration()
                       .WriteTo.Debug()
                       .CreateLogger()
                       
-    SynchronizationContext.SetSynchronizationContext(SynchronizationContext())
-    let model = MainWindowViewModel()
-    let manager = SshManager.init model
-    let createSshWindow() :Window = MainWindow(DataContext = model, Manager = manager)
+    let trace_file = Path.GetTempFileName()
+    Trace.Listeners.Add(TextWriterTraceListener(trace_file)) |> ignore
+    
     try
-        ensureSSHAgentRun()
-        let result = buildAvaloniaApp(createSshWindow).StartWithClassicDesktopLifetime(argv)
-        assert (result = 0)
-        manager.Tell(SshManager.Quit, ActorRefs.NoSender)
-        0
+        Log.Information "Start app"
+        try
+            ensureSSHAgentRun()
+            buildAvaloniaApp().start(args)
+        with
+        | e -> Trace.WriteLine $"Error occured:\n\t{e}"
+               Trace.Flush()
+               use p = Process.Start("notepad.exe", trace_file)
+               p.WaitForExit()
+               -1
     finally
-        Log.CloseAndFlush()
+        Trace.Close()
+        File.Delete trace_file

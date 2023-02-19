@@ -26,6 +26,8 @@ type MainWindow () as this =
         this.AttachDevTools()
 #endif
         AvaloniaXamlLoader.Load(this)
+        
+        raise (exn "hello")
 
     member private _.AddTunnel(_ :obj, e :RoutedEventArgs) =
         manager.Tell RegisterTunnel

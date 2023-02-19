@@ -25,6 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppConfig.fs" />
+    <Compile Include="Avalonia.fs" />
     <Compile Include="RzActor.fs" />
     <Compile Include="Models\ServerInputFormat.fs" />
     <Compile Include="ViewModels\Domain.fs" />
@@ -35,7 +36,6 @@
     <Compile Include="TunnelRunner.fs" />
     <Compile Include="SshManager.fs" />
     <Compile Include="Views\MainWindow.axaml.fs" />
-    <Compile Include="Views\Notepad.axaml.fs" />
     <Compile Include="ViewLocator.fs" />
     <Compile Include="App.axaml.fs" />
     <Compile Include="Program.fs" />
