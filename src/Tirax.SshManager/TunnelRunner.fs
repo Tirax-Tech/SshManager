@@ -39,7 +39,7 @@ type Actor(parent :IActorRef, tunnel :TunnelConfig) as my =
         parent.Tell (UpdateUI <| fun _ -> tunnel.IsWaiting <- true)
         my.Self.Tell PoisonPill.Instance
         
-    let processCheck struct (my, _) =
+    let processCheck struct (my: ActorContext, _) =
         let self = my.Self
         let exit_handler _ = self.Tell PoisonPill.Instance
         match tunnel |> startSshProcess with
