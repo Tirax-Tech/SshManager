@@ -24,8 +24,8 @@
     <None Include="Tirax.SshManager.snk" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AppConfig.fs" />
     <Compile Include="Avalonia.fs" />
+    <Compile Include="AppConfig.fs" />
     <Compile Include="RzActor.fs" />
     <Compile Include="Models\ServerInputFormat.fs" />
     <Compile Include="ViewModels\Domain.fs" />
@@ -67,6 +67,7 @@
     <PackageReference Include="RZ.FSharp.Extension" Version="2.0.0" />
     <PackageReference Include="Serilog" Version="2.12.0" />
     <PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
   </ItemGroup>
   <!-- Import Project="..\.paket\Paket.Restore.targets" /-->
 </Project>

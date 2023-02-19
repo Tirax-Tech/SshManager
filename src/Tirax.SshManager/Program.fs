@@ -5,6 +5,7 @@ open Avalonia
 open Avalonia.ReactiveUI
 open Serilog
 open Tirax.SshManager
+open RZ.FSharp.Extension.Prelude
 open RZ.FSharp.Extension.Avalonia
 
 let [<Literal>] SshAgentProcessName = "ssh-agent"
@@ -32,24 +33,24 @@ let buildAvaloniaApp() :AppBuilder =
 
 [<EntryPoint; STAThread>]
 let main args =
+    let log_file = AppConfig.createLogFile()
     Log.Logger <- LoggerConfiguration()
                       .WriteTo.Debug()
+                      .WriteTo.File(log_file)
                       .CreateLogger()
                       
-    let trace_file = Path.GetTempFileName()
-    Trace.Listeners.Add(TextWriterTraceListener(trace_file)) |> ignore
-    
+    Log.Information "Start app"
+    Log.Information("Log file path: {path}", log_file)
     try
-        Log.Information "Start app"
-        try
-            ensureSSHAgentRun()
-            buildAvaloniaApp().start(args)
-        with
-        | e -> Trace.WriteLine $"Error occured:\n\t{e}"
-               Trace.Flush()
-               use p = Process.Start("notepad.exe", trace_file)
+        ensureSSHAgentRun()
+        buildAvaloniaApp().start(args)
+        |> sideEffect (fun _ -> Log.CloseAndFlush()
+                                File.Delete log_file)
+    with
+    | e -> Log.Fatal(e, "Unhandled exception occured!")
+           Log.CloseAndFlush()
+           
+           if OperatingSystem.IsWindows() then
+               use p = Process.Start("notepad.exe", log_file)
                p.WaitForExit()
-               -1
-    finally
-        Trace.Close()
-        File.Delete trace_file
+           -1
