@@ -4,6 +4,7 @@ open System
 open System.IO
 open System.Reflection
 open type System.Environment
+open Tirax.SshManager.DI
 
 let Version = lazy (let version = Option.ofObj <| Assembly.GetEntryAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()
                     in version |> Option.map (fun v -> v.InformationalVersion))
@@ -29,4 +30,7 @@ let createLogFile() =
     let now = DateTime.Now.ToString("yyyyMMdd-HHmmss")
     in  logFile $"log-%s{now}.txt"
 
-type AppEnvironment = interface end
+type AppEnvironment =
+    inherit HasFile
+    inherit HasLogger
+    inherit HasProcess

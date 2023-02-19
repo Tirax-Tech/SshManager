@@ -25,6 +25,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Avalonia.fs" />
+    <Compile Include="DI\File.fs" />
+    <Compile Include="DI\Logger.fs" />
+    <Compile Include="DI\Process.fs" />
     <Compile Include="AppConfig.fs" />
     <Compile Include="RzActor.fs" />
     <Compile Include="Models\ServerInputFormat.fs" />
