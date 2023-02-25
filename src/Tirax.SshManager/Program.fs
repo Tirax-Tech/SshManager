@@ -8,29 +8,6 @@ open RZ.FSharp.Extension.Avalonia
 open Tirax.SshManager.AppConfig
 open Tirax.SshManager.DI
 
-let [<Literal>] SshAgentProcessName = "ssh-agent"
-let ensureSSHAgentRun(env: AppEnvironment) =
-    let agents =
-        query {
-            for p in env.getProcesses() do
-            where (p.ProcessName = SshAgentProcessName)
-            select (p.Id, p.Responding)
-        } |> Seq.toList
-    assert (agents |> Seq.forall snd)
-    if agents.Length = 0 then
-        env.log.Information "Starting ssh-agent"
-        env.startProcess(SshAgentProcessName).Dispose()
-    else
-        env.log.Information "ssh-agent already running"
-
-[<CompiledName "BuildAvaloniaApp">] 
-let buildAvaloniaApp() :AppBuilder =
-    AppBuilder
-        .Configure<App>()
-        .UsePlatformDetect()
-        .LogToTrace(areas = Array.empty)
-        .UseReactiveUI()
-        
 type LiveEnv() =
     let log_file = createLogFile()
     do Log.Logger <- LoggerConfiguration().WriteTo.Debug().WriteTo.File(log_file).CreateLogger()
@@ -49,6 +26,29 @@ type LiveEnv() =
     
     static member val Default = LiveEnv() with get
     
+let [<Literal>] SshAgentProcessName = "ssh-agent"
+let ensureSSHAgentRun(env: AppEnvironment) =
+    let agents =
+        query {
+            for p in env.getProcesses() do
+            where (p.ProcessName = SshAgentProcessName)
+            select (p.Id, p.Responding)
+        } |> Seq.toList
+    assert (agents |> Seq.forall snd)
+    if agents.Length = 0 then
+        env.log.Information "Starting ssh-agent"
+        env.startProcess(SshAgentProcessName).Dispose()
+    else
+        env.log.Information "ssh-agent already running"
+
+[<CompiledName "BuildAvaloniaApp">] 
+let buildAvaloniaApp env :AppBuilder =
+    AppBuilder
+        .Configure(fun () -> App(env))
+        .UsePlatformDetect()
+        .LogToTrace(areas = Array.empty)
+        .UseReactiveUI()
+        
 [<EntryPoint; STAThread>]
 let main args =
     let env: AppEnvironment = LiveEnv()
@@ -57,7 +57,7 @@ let main args =
     env.log.Information("Log file path: {path}", env.logger.logFile)
     try
         ensureSSHAgentRun env
-        buildAvaloniaApp().start(args)
+        buildAvaloniaApp(env).start(args)
         |> sideEffect (fun _ -> env.closeLog()
                                 env.deleteFile env.logFile)
     with

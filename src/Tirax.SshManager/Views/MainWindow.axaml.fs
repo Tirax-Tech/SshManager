@@ -7,16 +7,20 @@ open Avalonia.Input
 open Avalonia.Interactivity
 open Avalonia.Markup.Xaml
 open Tirax.SshManager
+open Tirax.SshManager.AppConfig
 open Tirax.SshManager.SshManager
 open Tirax.SshManager.ViewModels
 
-type MainWindow () as this = 
+type MainWindow (env: AppEnvironment) as this = 
     inherit Window ()
     
     let mutable manager :IActorRef = ActorRefs.Nobody
 
     do this.InitializeComponent()
     do this.Title <- AppConfig.Title.Value
+    
+    // Design Time only!
+    new() = MainWindow(Unchecked.defaultof<AppEnvironment>)
     
     member _.Manager with set v = manager <- v
     member private my.Model = my.DataContext :?> MainWindowViewModel
