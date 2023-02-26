@@ -23,7 +23,7 @@ type App(env: AppEnvironment) =
     override this.Initialize() = AvaloniaXamlLoader.Load(this)
 
     override this.OnFrameworkInitializationCompleted() =
-        let model = MainWindowViewModel()
+        let model = MainWindowViewModel.create()
         let manager = SshManager.init model
         
         match this.ApplicationLifetime with

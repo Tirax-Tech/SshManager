@@ -1,26 +1,46 @@
 namespace Tirax.SshManager.Views
 
 open Akka.Actor
+open ReactiveUI
 open Avalonia
 open Avalonia.Controls
+open Avalonia.Controls.Mixins
 open Avalonia.Input
 open Avalonia.Interactivity
 open Avalonia.Markup.Xaml
+open Avalonia.ReactiveUI
+open RZ.FSharp.Extension
+open RZ.FSharp.Extension.Avalonia
 open Tirax.SshManager
 open Tirax.SshManager.AppConfig
 open Tirax.SshManager.SshManager
 open Tirax.SshManager.ViewModels
 
 type MainWindow (env: AppEnvironment) as this = 
-    inherit Window ()
+    inherit ReactiveWindow<MainWindowViewModel>()
     
     let mutable manager :IActorRef = ActorRefs.Nobody
 
+    do this.WhenActivated(fun disposables ->
+           MVVM(this, this.ViewModel, disposables)
+               .bind((fun vm -> vm.NewConnectionName), (fun v -> v.inpNewConnectionName.Text))
+               .bind((fun vm -> vm.NewServerWithPort), (fun v -> v.inpNewServerWithPort.Text))
+               .bind((fun vm -> vm.NewLocalPort     ), (fun v -> v.inpNewLocalPort     .Text))
+               .bind((fun vm -> vm.NewDestination   ), (fun v -> v.inpNewDestination   .Text))
+               .bind((fun vm -> vm.Addable), (fun v -> v.btnAddTunnel.IsEnabled))
+               .``end``()
+       ) |> ignore
     do this.InitializeComponent()
     do this.Title <- AppConfig.Title.Value
     
     // Design Time only!
     new() = MainWindow(Unchecked.defaultof<AppEnvironment>)
+    
+    member my.inpNewConnectionName :TextBox = my.findControl<TextBox>().unwrap()
+    member my.inpNewServerWithPort :TextBox = my.findControl<TextBox>().unwrap()
+    member my.inpNewLocalPort      :TextBox = my.findControl<TextBox>().unwrap()
+    member my.inpNewDestination    :TextBox = my.findControl<TextBox>().unwrap()
+    member my.btnAddTunnel         :Button  = my.findControl<Button>().unwrap()
     
     member _.Manager with set v = manager <- v
     member private my.Model = my.DataContext :?> MainWindowViewModel

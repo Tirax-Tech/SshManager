@@ -5,32 +5,17 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Tirax.SshManager.Views.MainWindow"
-        x:DataType="vm:MainWindowViewModel"
-        x:CompileBindings="True"
         Name="MainWindow"
         Icon="/Assets/avalonia-logo.ico"
         Title="Tirax SSH Manager">
-    
-    <Design.DataContext>
-        <vm:MainWindowViewModel>
-            <vm:MainWindowViewModel.Tunnels>
-                <vm:TunnelConfig Name="Test" SshHost="sample.org" SshPort="22" LocalPort="80" RemoteHost="example.org" RemotePort="8888" />
-            </vm:MainWindowViewModel.Tunnels>
-        </vm:MainWindowViewModel>
-    </Design.DataContext>
-
     <DockPanel>
         <Border DockPanel.Dock="Top" BorderThickness="1" BorderBrush="Silver">
             <StackPanel Orientation="Horizontal">
-                <TextBlock>Name</TextBlock>
-                <TextBox Text="{Binding NewConnectionName}"></TextBox>
-                <TextBlock>Server[:port]</TextBlock>
-                <TextBox Text="{Binding NewServerWithPort}" Watermark="e.g. example.org:9999"></TextBox>
-                <TextBlock>Local Port</TextBlock>
-                <TextBox Text="{Binding NewLocalPort}" Watermark="1 - 65535"></TextBox>
-                <TextBlock>Destination</TextBlock>
-                <TextBox Text="{Binding NewDestination}" Watermark="e.g. 192.168.1.123:9999"></TextBox>
-                <Button Click="AddTunnel">Add</Button>
+                <TextBlock>Name</TextBlock><TextBox x:Name="inpNewConnectionName" />
+                <TextBlock>Server[:port]</TextBlock><TextBox x:Name="inpNewServerWithPort" Watermark="e.g. example.org:9999" />
+                <TextBlock>Local Port</TextBlock><TextBox x:Name="inpNewLocalPort" Watermark="1 - 65535" />
+                <TextBlock>Destination</TextBlock><TextBox x:Name="inpNewDestination" Watermark="e.g. 192.168.1.123:9999" />
+                <Button x:Name="btnAddTunnel">Add</Button>
             </StackPanel>
         </Border>
         <DataGrid Name="TunnelTable" x:DataType="vm:TunnelConfig" DataContext="{Binding Tunnels}" Items="{Binding}" KeyUp="GridKeyUp"
