@@ -4,7 +4,6 @@ open Akka.Actor
 open ReactiveUI
 open Avalonia
 open Avalonia.Controls
-open Avalonia.Controls.Mixins
 open Avalonia.Input
 open Avalonia.Interactivity
 open Avalonia.Markup.Xaml
@@ -28,6 +27,7 @@ type MainWindow (env: AppEnvironment) as this =
                .bind((fun vm -> vm.NewLocalPort     ), (fun v -> v.inpNewLocalPort     .Text))
                .bind((fun vm -> vm.NewDestination   ), (fun v -> v.inpNewDestination   .Text))
                .bind((fun vm -> vm.Addable), (fun v -> v.btnAddTunnel.IsEnabled))
+               .bindCommand((fun vm -> vm.AddTunnel), (fun v -> v.btnAddTunnel))
                .``end``()
        ) |> ignore
     do this.InitializeComponent()
@@ -50,10 +50,6 @@ type MainWindow (env: AppEnvironment) as this =
         this.AttachDevTools()
 #endif
         AvaloniaXamlLoader.Load(this)
-        
-    member private _.AddTunnel(_ :obj, e :RoutedEventArgs) =
-        manager.Tell RegisterTunnel
-        e.Handled <- true
         
     member private _.RunTunnel(sender :obj, e :RoutedEventArgs) =
         let button = sender :?> Button

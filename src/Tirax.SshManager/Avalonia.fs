@@ -26,11 +26,15 @@ type IControl with
                                                          name: string) :'T option =
         Option.ofObj <| my.FindControl<'T>(name)
         
-type MVVM<'view, 'vm when 'view :> IViewFor
+type MVVM<'view, 'vm when 'view :> IViewFor<'vm>
                      and 'view: not struct
                      and 'vm: not struct>(v: 'view,vm: 'vm,disposable) =
     member me.bind(vm_target: Expression<Func<'vm,'a>>, v_target: Expression<Func<'view,'b>>) :MVVM<'view,'vm> =
         v.Bind(vm, vm_target, v_target).DisposeWith(disposable) |> ignore
+        me
+        
+    member me.bindCommand(command_target: Expression<Func<'vm,'command>>, v_target: Expression<Func<'view,'control>>) :MVVM<'view,'vm> =
+        v.BindCommand(vm, command_target, v_target).DisposeWith(disposable) |> ignore
         me
         
     member inline me.``end``() = ()
