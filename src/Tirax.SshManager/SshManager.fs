@@ -27,28 +27,6 @@ type Quit = Quit
 module SshManager =
     let validatePort port = if port < 1us then None else Some port
         
-    let addTunnel fail_flow cont (model :MainWindowViewModel) =
-        let ssh_server = ServerInputFormat.parse model.NewServerWithPort
-        if ssh_server.IsNone then
-            fail_flow $"Invalid SSH server format: %s{model.NewServerWithPort}"
-        elif model.NewLocalPort < 1us then
-            fail_flow $"Invalid local port: %d{model.NewLocalPort}"
-        else
-            let remote_server = ServerInputFormat.parse model.NewDestination
-            if remote_server.IsNone then
-                fail_flow $"Invalid destination server format: %s{model.NewDestination}"
-            else
-                let ssh_host, ssh_port = ssh_server.Value
-                let remote_host, remote_port = remote_server.Value
-                
-                TunnelConfig( Name = model.NewConnectionName,
-                              SshHost = ssh_host,
-                              SshPort = ssh_port,
-                              LocalPort = model.NewLocalPort,
-                              RemoteHost = remote_host,
-                              RemotePort = remote_port )
-                |> cont
-                
     let shutdown() =
         // Somehow using async { } causes blocking on Task.Run, while using Async.AwaitTask works fine... 🤔
         task {

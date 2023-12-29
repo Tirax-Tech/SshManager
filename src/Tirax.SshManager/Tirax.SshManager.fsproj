@@ -34,6 +34,7 @@
     <Compile Include="ViewModels\Domain.fs" />
     <Compile Include="ViewModels\ViewModelBase.fs" />
     <Compile Include="ViewModels\MainWindowViewModel.fs" />
+    <Compile Include="AppEnvironment.fs" />
     <Compile Include="Storage.fs" />
     <Compile Include="ManagerCommands.fs" />
     <Compile Include="TunnelRunner.fs" />
@@ -67,7 +68,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="RZ.FSharp.Extension" Version="2.0.0" />
+    <PackageReference Include="RZ.FSharp.Extension" Version="2.1.1-alpha.0.3" />
     <PackageReference Include="Serilog" Version="2.12.0" />
     <PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />

@@ -52,7 +52,7 @@ type State =
     
     static member ``new``() = { Store = IsolatedStorageFile.GetUserStoreForApplication() }
 
-    member my.``open`` mode =
+    member my.``open`` mode :IsolatedStorageFileStream =
         my.Store.OpenFile("ssh-manager.json", mode)
         
     member my.dispose() = my.Store.Dispose()
@@ -97,3 +97,32 @@ let private handler struct (state: State, package: AkkaPackage<State>) =
     
 type FileManager() =
     inherit FsUntypedActor<State>(State.``new``(), handler)
+    
+[<Sealed; AbstractClass>]
+type private Helper =
+    static member loadContent(store: IsolatedStorageFile) :ValueOption<string> =
+        use data_file = store.OpenFile("ssh-manager.json", FileMode.OpenOrCreate)
+
+        let iso_data =
+            if data_file.Length = 0
+            then ValueNone
+            else ValueSome <| StreamReader(data_file).ReadToEnd()
+
+        data_file.Close()
+        iso_data
+    
+    static member load<'T>(store :IsolatedStorageFile) :ValueOption<'T> =
+        let data =
+            Helper.loadContent(store)
+                  .bind(ValueOption.safeCall deserializeTunnelConfig)
+                  .defaultValue(Seq.empty)
+            |> Seq.map TunnelConfigStorageModel.ToTunnelConfig
+            |> Seq.toArray
+
+        ValueSome state
+    
+type FileObjStorage() =
+    let storage = IsolatedStorageFile.GetUserStoreForApplication()
+    
+    interface ObjStorage with
+        member _.load<'T>() :Async<'T> =  Value
