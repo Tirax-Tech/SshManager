@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{98B7F918-7A96-4D5F-9B35-B4A063A48683}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tirax.SshManager", "src\SshManager\Tirax.SshManager.csproj", "{1B932C87-2EC3-41F3-BE04-3673D30D8380}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tirax.SshManager.Core", "src\SshManager.Core\Tirax.SshManager.Core.csproj", "{8AFE3C56-5A60-4E13-806D-6FFE734AFC34}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1B932C87-2EC3-41F3-BE04-3673D30D8380}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B932C87-2EC3-41F3-BE04-3673D30D8380}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B932C87-2EC3-41F3-BE04-3673D30D8380}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B932C87-2EC3-41F3-BE04-3673D30D8380}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8AFE3C56-5A60-4E13-806D-6FFE734AFC34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8AFE3C56-5A60-4E13-806D-6FFE734AFC34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8AFE3C56-5A60-4E13-806D-6FFE734AFC34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8AFE3C56-5A60-4E13-806D-6FFE734AFC34}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1B932C87-2EC3-41F3-BE04-3673D30D8380} = {98B7F918-7A96-4D5F-9B35-B4A063A48683}
+		{8AFE3C56-5A60-4E13-806D-6FFE734AFC34} = {98B7F918-7A96-4D5F-9B35-B4A063A48683}
+	EndGlobalSection
+EndGlobal
