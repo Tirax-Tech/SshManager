@@ -2,9 +2,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="360" d:DesignHeight="56"
+             MinHeight="56" MinWidth="180"
              x:Class="Tirax.SshManager.Components.SearchBar">
-    <Border Background="Yellow" CornerRadius="24">
-        <TextBlock>Search</TextBlock>
+    <Border CornerRadius="28" Padding="4" Background="{DynamicResource MaterialToolBackgroundBrush}">
+        <DockPanel>
+            <materialIcons:MaterialIcon Kind="Search" Width="24" Height="24" Margin="12" Foreground="{DynamicResource MaterialToolForegroundBrush}"
+                                        DockPanel.Dock="Left" />
+            <TextBox VerticalAlignment="Center" x:Name="input" BorderThickness="0" Margin="0,0,24,0" Foreground="{DynamicResource MaterialToolForegroundBrush}"
+                     Watermark="Search connection" />
+        </DockPanel>
     </Border>
 </UserControl>
