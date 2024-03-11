@@ -25,9 +25,4 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-
-
-  <ItemGroup>
-    <ProjectReference Include="..\SshManager.Core\Tirax.SshManager.Core.csproj" />
-  </ItemGroup>
 </Project>

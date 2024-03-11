@@ -1,0 +1,15 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:components="clr-namespace:Tirax.SshManager.Components"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="80"
+             x:Class="Tirax.SshManager.Components.AppBar">
+    <DockPanel Width="{Binding $parent.Width}" Height="{Binding $parent.Height}"
+               VerticalAlignment="Center" Background="{DynamicResource MaterialToolBackgroundBrush}">
+        <materialIcons:MaterialIcon Kind="{Binding $parent[components:AppBar].MainIcon}" Width="24" Height="24" Margin="12" Foreground="{DynamicResource MaterialToolForegroundBrush}"
+                                    DockPanel.Dock="Left" />
+        <TextBlock Height="28" FontSize="22" Text="{Binding $parent[components:AppBar].Title}" />
+    </DockPanel>
+</UserControl>
