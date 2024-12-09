@@ -10,8 +10,8 @@ open RZ.FSharp.Extension
 open Tirax.SshManager.ViewModels
 
 type Load = Load
-type LoadResult = LoadResult of TunnelConfig seq
-type Save = Save of TunnelConfig seq
+type LoadResult = LoadResult of TunnelConfigViewModel seq
+type Save = Save of TunnelConfigViewModel seq
 
 type Storage(actor: IActorRef) =
     member _.Actor = actor
@@ -32,7 +32,7 @@ type TunnelConfigStorageModel =
       RemoteHost: string
       RemotePort: uint16 }
 
-    static member FromTunnelConfig(c: TunnelConfig) =
+    static member FromTunnelConfig(c: TunnelConfigViewModel) =
         { Name = c.Name
           SshHost = c.SshHost
           SshPort = c.SshPort
@@ -41,7 +41,7 @@ type TunnelConfigStorageModel =
           RemotePort = c.RemotePort }
 
     static member ToTunnelConfig s =
-        TunnelConfig(Name = s.Name, SshHost = s.SshHost, SshPort = s.SshPort, LocalPort = s.LocalPort,
+        TunnelConfigViewModel(Name = s.Name, SshHost = s.SshHost, SshPort = s.SshPort, LocalPort = s.LocalPort,
                      RemoteHost = s.RemoteHost, RemotePort = s.RemotePort)
 
 let deserializeTunnelConfig (s: string) :TunnelConfigStorageModel seq =
@@ -49,12 +49,12 @@ let deserializeTunnelConfig (s: string) :TunnelConfigStorageModel seq =
 
 type State =
     { Store: IsolatedStorageFile }
-    
+
     static member ``new``() = { Store = IsolatedStorageFile.GetUserStoreForApplication() }
 
     member my.``open`` mode :IsolatedStorageFileStream =
         my.Store.OpenFile("ssh-manager.json", mode)
-        
+
     member my.dispose() = my.Store.Dispose()
 
 let private load (state: State) (ctx: AkkaPackage<State>) =
@@ -78,51 +78,22 @@ let private load (state: State) (ctx: AkkaPackage<State>) =
     ctx.Sender.Tell(LoadResult data)
     ValueSome state
 
-let private save (state: State) (tunnels: TunnelConfig seq) =
+let private save (state: State) (tunnels: TunnelConfigViewModel seq) =
     use data_file = state.``open`` FileMode.Create |> StreamWriter
 
     tunnels
     |> Seq.map TunnelConfigStorageModel.FromTunnelConfig
     |> JsonSerializer.Serialize
     |> data_file.Write
-    
+
     ValueSome state
-    
+
 let private handler struct (state: State, package: AkkaPackage<State>) =
     match package.Message with
     | :? Load -> load state package
     | :? Save as v -> let (Save tunnels) = v in save state tunnels
     | :? ActorLifecycles as v when v = PostStop -> state.dispose(); ValueSome state
     | _ -> ValueNone
-    
+
 type FileManager() =
     inherit FsUntypedActor<State>(State.``new``(), handler)
-    
-[<Sealed; AbstractClass>]
-type private Helper =
-    static member loadContent(store: IsolatedStorageFile) :ValueOption<string> =
-        use data_file = store.OpenFile("ssh-manager.json", FileMode.OpenOrCreate)
-
-        let iso_data =
-            if data_file.Length = 0
-            then ValueNone
-            else ValueSome <| StreamReader(data_file).ReadToEnd()
-
-        data_file.Close()
-        iso_data
-    
-    static member load<'T>(store :IsolatedStorageFile) :ValueOption<'T> =
-        let data =
-            Helper.loadContent(store)
-                  .bind(ValueOption.safeCall deserializeTunnelConfig)
-                  .defaultValue(Seq.empty)
-            |> Seq.map TunnelConfigStorageModel.ToTunnelConfig
-            |> Seq.toArray
-
-        ValueSome state
-    
-type FileObjStorage() =
-    let storage = IsolatedStorageFile.GetUserStoreForApplication()
-    
-    interface ObjStorage with
-        member _.load<'T>() :Async<'T> =  Value

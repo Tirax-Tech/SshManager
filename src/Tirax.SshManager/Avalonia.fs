@@ -4,25 +4,23 @@ open System
 open System.Linq.Expressions
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
+open System.Reactive.Disposables
 open ReactiveUI
 open Avalonia
 open Avalonia.Controls
-open Avalonia.Controls.Mixins
 open Avalonia.Controls.ApplicationLifetimes
 
-type AppBuilder with
-    member inline my.start(?args, ?shutdown_mode) :int =
-        use lifetime = ClassicDesktopStyleApplicationLifetime
-                           (ShutdownMode = shutdown_mode.defaultValue ShutdownMode.OnLastWindowClose)
-        my.SetupWithLifetime lifetime |> ignore
-        lifetime.Start (args.defaultValue Array.empty)
+let start (args: string array option, shutdown_mode: ShutdownMode option) (app: AppBuilder) :int =
+    use lifetime = ClassicDesktopStyleApplicationLifetime(ShutdownMode = shutdown_mode.defaultValue ShutdownMode.OnLastWindowClose)
+    app.SetupWithLifetime lifetime |> ignore
+    lifetime.Start (args.defaultValue Array.empty)
 
-type IControl with
+type Control with
     member inline my.findControl<'T when 'T :not struct
                                      and 'T :null
-                                     and 'T :> IControl>([<CallerMemberName;
-                                                           Optional;
-                                                           DefaultParameterValue("")>]
+                                     and 'T :> Control>([<CallerMemberName;
+                                                          Optional;
+                                                          DefaultParameterValue("")>]
                                                          name: string) :'T option =
         Option.ofObj <| my.FindControl<'T>(name)
 

@@ -7,6 +7,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{98B7F918-7A9
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Tirax.SshManager", "src\Tirax.SshManager\Tirax.SshManager.fsproj", "{1C8D1555-B99E-4D33-898E-55B63BD2705F}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Tirax.SshManager.Core", "src\Tirax.SshManager.Core\Tirax.SshManager.Core.fsproj", "{D0B86DEC-953E-4405-AB77-DDDBC22CF8FE}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "RZ.FSharp.Extension", "..\..\libs\RZ.FSharp.Extension\src\RZ.FSharp.Extension\RZ.FSharp.Extension.fsproj", "{A28EB969-81FE-44DA-AD2F-DBBC05C36229}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,8 +24,18 @@ Global
 		{1C8D1555-B99E-4D33-898E-55B63BD2705F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C8D1555-B99E-4D33-898E-55B63BD2705F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C8D1555-B99E-4D33-898E-55B63BD2705F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0B86DEC-953E-4405-AB77-DDDBC22CF8FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0B86DEC-953E-4405-AB77-DDDBC22CF8FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0B86DEC-953E-4405-AB77-DDDBC22CF8FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0B86DEC-953E-4405-AB77-DDDBC22CF8FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A28EB969-81FE-44DA-AD2F-DBBC05C36229}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A28EB969-81FE-44DA-AD2F-DBBC05C36229}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A28EB969-81FE-44DA-AD2F-DBBC05C36229}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A28EB969-81FE-44DA-AD2F-DBBC05C36229}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{1C8D1555-B99E-4D33-898E-55B63BD2705F} = {98B7F918-7A96-4D5F-9B35-B4A063A48683}
+		{D0B86DEC-953E-4405-AB77-DDDBC22CF8FE} = {98B7F918-7A96-4D5F-9B35-B4A063A48683}
+		{A28EB969-81FE-44DA-AD2F-DBBC05C36229} = {98B7F918-7A96-4D5F-9B35-B4A063A48683}
 	EndGlobalSection
 EndGlobal

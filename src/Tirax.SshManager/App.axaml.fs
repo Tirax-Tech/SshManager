@@ -5,7 +5,6 @@ open Avalonia
 open Avalonia.Controls
 open Avalonia.Controls.ApplicationLifetimes
 open Avalonia.Markup.Xaml
-open Tirax.SshManager.AppConfig
 open Tirax.SshManager.ViewModels
 open Tirax.SshManager.Views
 
@@ -14,24 +13,21 @@ open Tirax.SshManager.Views
 // For example, it's not possible to show "Notepad" window app after the main window app is completed. Both windows
 // must reside in the same app.
 //
-type App(env: AppEnvironment) =
+type App() =
     inherit Application()
-    
-    // Design time only!
-    new() = App(Unchecked.defaultof<AppEnvironment>)
-    
+
     override this.Initialize() = AvaloniaXamlLoader.Load(this)
 
     override this.OnFrameworkInitializationCompleted() =
         let model = MainWindowViewModel.create()
         let manager = SshManager.init model
-        
+
         match this.ApplicationLifetime with
         | :?IClassicDesktopStyleApplicationLifetime as desktop ->
             desktop.ShutdownMode <- ShutdownMode.OnMainWindowClose
-            desktop.MainWindow <- MainWindow(env, DataContext = model, Manager = manager)
+            desktop.MainWindow <- MainWindow(DataContext = model, Manager = manager)
             desktop.ShutdownRequested.Add(fun _ -> manager.Tell(SshManager.Quit, ActorRefs.NoSender))
-            
+
         | _ -> ()
 
         base.OnFrameworkInitializationCompleted()

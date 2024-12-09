@@ -17,14 +17,15 @@ let private local_app_folder :string =
     if OperatingSystem.IsWindows()
     then Path.Combine(GetFolderPath SpecialFolder.LocalApplicationData, AppName)
     else Path.Combine(GetFolderPath SpecialFolder.UserProfile, $".{AppName}")
-    
+
 let private log_folder :string = Path.Combine(local_app_folder, "logs")
 
 if not <| Directory.Exists log_folder then Directory.CreateDirectory log_folder |> ignore
-    
+
 let AppPath = local_app_folder
 
 let logFile file_name :string = Path.Combine(log_folder, file_name)
-let createLogFile() =
+
+let createLogFileName() =
     let now = DateTime.Now.ToString("yyyyMMdd-HHmmss")
     in  logFile $"log-%s{now}.txt"

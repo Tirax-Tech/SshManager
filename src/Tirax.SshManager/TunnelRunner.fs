@@ -14,7 +14,7 @@ type Quited = Quited of name:string
 
 type private ProcessCheck = ProcessCheck
 
-let startSshProcess (tunnel :TunnelConfig) =
+let startSshProcess (tunnel :TunnelConfigViewModel) =
     let process_parameters = if tunnel.SshPort |> ServerInputFormat.isPortUnspecified
                              then [] else ["-p"; tunnel.SshPort.ToString()]
     let process_parameters = process_parameters @ ["-fN"; tunnel.SshHost; "-L"; $"{tunnel.LocalPort}:{tunnel.RemoteHost}:{tunnel.RemotePort}"]
@@ -23,7 +23,7 @@ let startSshProcess (tunnel :TunnelConfig) =
     with
     | :? Win32Exception as e -> Error (e :> exn)
 
-type Actor(parent :IActorRef, tunnel :TunnelConfig) as my =
+type Actor(parent :IActorRef, tunnel :TunnelConfigViewModel) as my =
     inherit FsReceiveActor()
     
     let mutable ssh_process :Process option = None

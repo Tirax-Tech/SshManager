@@ -18,12 +18,12 @@
                 <Button x:Name="btnAddTunnel">Add</Button>
             </StackPanel>
         </Border>
-        <DataGrid Name="TunnelTable" x:DataType="vm:TunnelConfig" DataContext="{Binding Tunnels}" Items="{Binding}" KeyUp="GridKeyUp"
+        <DataGrid Name="TunnelTable" x:DataType="vm:TunnelConfigViewModel" DataContext="{Binding Tunnels}" ItemsSource="{Binding}" KeyUp="GridKeyUp"
                   BeginningEdit="EditingCells" CellEditEnded="CellEditingEnded">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Header="Action" IsReadOnly="True">
                     <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate DataType="vm:TunnelConfig">
+                        <DataTemplate DataType="vm:TunnelConfigViewModel">
                             <StackPanel Orientation="Horizontal">
                                 <Button IsVisible="{Binding Runnable}" Click="RunTunnel" Tag="{Binding}">Run</Button>
                                 <Button IsVisible="{Binding Stoppable}" Click="StopTunnel" Tag="{Binding}">Stop</Button>

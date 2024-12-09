@@ -2,22 +2,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <!--Avalonia doesen't support TrimMode=link currently,but we are working on that https://github.com/AvaloniaUI/Avalonia/issues/6892 -->
     <TrimMode>copyused</TrimMode>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <LangVersion>preview</LangVersion>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>Tirax.SshManager.snk</AssemblyOriginatorKeyFile>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+
+  <PropertyGroup>
     <WarningLevel>4</WarningLevel>
     <NoWarn>;NU5105;760</NoWarn>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <WarningLevel>4</WarningLevel>
-    <NoWarn>;NU5105;760</NoWarn>
-  </PropertyGroup>
+
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
     <None Remove=".gitignore" />
@@ -25,16 +25,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Avalonia.fs" />
-    <Compile Include="DI\File.fs" />
-    <Compile Include="DI\Logger.fs" />
-    <Compile Include="DI\Process.fs" />
     <Compile Include="AppConfig.fs" />
     <Compile Include="RzActor.fs" />
     <Compile Include="Models\ServerInputFormat.fs" />
     <Compile Include="ViewModels\Domain.fs" />
     <Compile Include="ViewModels\ViewModelBase.fs" />
     <Compile Include="ViewModels\MainWindowViewModel.fs" />
-    <Compile Include="AppEnvironment.fs" />
     <Compile Include="Storage.fs" />
     <Compile Include="ManagerCommands.fs" />
     <Compile Include="TunnelRunner.fs" />
@@ -55,23 +51,25 @@
     <TrimmableAssembly Include="Avalonia.Themes.Default" />
   </ItemGroup>
   <ItemGroup><!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-  
+
+
+    <ProjectReference Include="..\Tirax.SshManager.Core\Tirax.SshManager.Core.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="8.0.200" />
-    <PackageReference Include="Akka" Version="1.5.17.1" />
-    <PackageReference Include="Avalonia" Version="11.0.10" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.0.10" />
-    <PackageReference Include="Avalonia.Diagnostics" Version="11.0.10" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.10" />
-    <PackageReference Include="MinVer" Version="5.0.0">
+    <PackageReference Update="FSharp.Core" Version="9.0.100" />
+    <PackageReference Include="Akka" Version="1.5.32" />
+    <PackageReference Include="Avalonia" Version="11.2.2" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.2" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.2.2" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.2" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.2" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.2" />
+    <PackageReference Include="MinVer" Version="6.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="RZ.FSharp.Extension" Version="2.2.0" />
-    <PackageReference Include="Serilog" Version="3.1.1" />
-    <PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0" />
-    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="Serilog.Sinks.Debug" Version="3.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
   </ItemGroup>
   <!-- Import Project="..\.paket\Paket.Restore.targets" /-->
 </Project>
